@@ -10,6 +10,7 @@ import { BrandFeedback } from '../components/BrandFeedback'
 import { DependantsField, NumberField, SelectField, TextField, Metric, Difference, Notice } from './Fields'
 import { SalaryChart, SalaryControls } from './SalaryChart'
 import { Assistant } from './Assistant'
+import type { Intent } from '../engine/intent'
 import { GrainField } from '../components/GrainField'
 import { NO_EXTRAS, baseFromBudget, hasExtras, payslip, type Extras } from '../engine/pay'
 import { ExtrasPanel } from '../components/ExtrasPanel'
@@ -290,6 +291,37 @@ export default function Studio({ panel }: { panel: Panel }) {
     ])
     downloadFile('karama-' + panel + '.csv', csv(rows), 'text/csv;charset=utf-8')
     notify('Export CSV téléchargé.')
+  }
+  /** The visitor asked for a change (« et si j'ai 20 h de suppl ») : the form is filled in, the engine answers. */
+  const applyIntent = (intent: Intent): string | null => {
+    if (panel !== 'fiche') return null
+    const current = data.payslip
+    const before = payslip(current.gross, current.dependants, current.extras ?? NO_EXTRAS)
+    const extras = { ...(current.extras ?? NO_EXTRAS) }
+    if (intent.hours !== undefined) extras.hours1 = intent.hours
+    if (intent.bonus !== undefined) extras.bonus = intent.bonus
+    const gross = intent.gross ?? current.gross
+    const dependants = intent.dependants ?? current.dependants
+    const after = payslip(gross, dependants, extras)
+    patch({ payslip: { ...data.payslip, gross, dependants, extras } })
+    const done = [
+      intent.hours !== undefined && `**${intent.hours} h supplémentaires** (majoration de ${extras.rate1} %)`,
+      intent.bonus !== undefined && `une prime de **${formatAr(intent.bonus)}**`,
+      intent.dependants !== undefined && `**${intent.dependants} personne${intent.dependants > 1 ? 's' : ''} à charge**`,
+      intent.gross !== undefined && `un brut de **${formatAr(intent.gross)}**`,
+    ].filter(Boolean)
+    const gain = after.result.net - before.result.net
+    return [
+      `C’est renseigné dans le formulaire : ${done.join(', ')}.`,
+      `- Net avant : ${formatAr(before.result.net)}`,
+      `- **Net après : ${formatAr(after.result.net)}** (${gain >= 0 ? '+' : '−'}${formatAr(Math.abs(gain))})`,
+      `- Brut avec ces éléments : ${formatAr(after.gross)}`,
+      intent.hours !== undefined
+        ? 'Les 20 premières heures supplémentaires sont exonérées d’IRSA. Vous pouvez ajuster les majorations dans « Primes, heures supplémentaires, avantages ».'
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
   }
   let aiScenarios: Scenario[] = data.scenarios
   if (panel === 'fiche')
@@ -1227,6 +1259,7 @@ export default function Studio({ panel }: { panel: Panel }) {
           toolTitle={title}
           suggestions={QUESTIONS[panel]}
           ask={ask}
+          onIntent={applyIntent}
         />
       )}
       <BrandFeedback state={status?.state ?? 'success'} className="studio-toast print:hidden" visible={!!status} replayKey={status?.id}>

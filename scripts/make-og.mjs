@@ -1,4 +1,4 @@
-// Draws public/og.png (1200 × 630): the home hero alone, from the running site.
+// Draws public/og.jpg (1200 × 630): the home hero alone, from the running site.
 //   pnpm dev   (in another terminal), then   node scripts/make-og.mjs [url]
 import { chromium } from '@playwright/test'
 import { homedir } from 'node:os'
@@ -26,6 +26,6 @@ await page.evaluate(() => {
   document.body.append(signature)
 })
 await page.locator('body > div:last-child img').evaluate(img => img.decode())
-await page.screenshot({ path: new URL('../public/og.png', import.meta.url).pathname })
+await page.screenshot({ path: new URL('../public/og.jpg', import.meta.url).pathname, type: 'jpeg', quality: 86 })
 await browser.close()
-console.log('public/og.png written')
+console.log('public/og.jpg written')

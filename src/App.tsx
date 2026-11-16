@@ -12,7 +12,8 @@ import { ResultCard } from './components/ResultCard'
 import { Sources } from './components/Sources'
 import { SCALE, compute } from './engine/compute'
 import { inverse } from './engine/inverse'
-import { payslip, hasExtras } from './engine/pay'
+import { payslip, hasExtras, NO_EXTRAS } from './engine/pay'
+import type { Intent } from './engine/intent'
 import { ExtrasPanel } from './components/ExtrasPanel'
 import { formatAr, formatNumber } from './lib/format'
 import { PANELS, type Panel } from './workspace/state'
@@ -148,6 +149,36 @@ function Calculator() {
     if (state.mode === 'gross') return pay?.result ?? null
     return compute(inverse(state.amount, state.dependants), state.dependants)
   }, [state.amount, state.mode, state.dependants, outOfRange, pay])
+  /** The visitor asked for a change (« et si j'ai 20 h de suppl ») : the form is filled in, the engine answers. */
+  const applyIntent = (intent: Intent): string | null => {
+    const baseGross = intent.gross ?? (state.mode === 'net' ? result?.gross : state.amount)
+    if (!baseGross || baseGross > MAX_AMOUNT) return null
+    const extras = { ...(state.extras ?? NO_EXTRAS) }
+    if (intent.hours !== undefined) extras.hours1 = intent.hours
+    if (intent.bonus !== undefined) extras.bonus = intent.bonus
+    const dependants = intent.dependants ?? state.dependants
+    const before = payslip(result?.gross ?? baseGross, state.dependants, state.extras)
+    const after = payslip(baseGross, dependants, extras)
+    update({ mode: 'gross', amount: baseGross, dependants, extras })
+    const done = [
+      intent.hours !== undefined && `**${intent.hours} h supplémentaires** (majoration de ${extras.rate1} %)`,
+      intent.bonus !== undefined && `une prime de **${formatAr(intent.bonus)}**`,
+      intent.dependants !== undefined && `**${intent.dependants} personne${intent.dependants > 1 ? 's' : ''} à charge**`,
+      intent.gross !== undefined && `un brut de **${formatAr(intent.gross)}**`,
+    ].filter(Boolean)
+    const gain = after.result.net - before.result.net
+    return [
+      `C’est renseigné dans le formulaire : ${done.join(', ')}.`,
+      `- Net avant : ${formatAr(before.result.net)}`,
+      `- **Net après : ${formatAr(after.result.net)}** (${gain >= 0 ? '+' : '−'}${formatAr(Math.abs(gain))})`,
+      `- Brut avec ces éléments : ${formatAr(after.gross)}`,
+      intent.hours !== undefined
+        ? 'Les 20 premières heures supplémentaires sont exonérées d’IRSA. Vous pouvez ajuster les majorations dans « Primes, heures supplémentaires, avantages ».'
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+  }
 
   let hint: string | undefined
   const tone = 'warning' as const
@@ -334,6 +365,7 @@ function Calculator() {
         toolTitle="Calculer mon salaire"
         suggestions={CALC_QUESTIONS}
         ask={ask}
+        onIntent={applyIntent}
       />
       <BrandFeedback state={copyFeedback?.state ?? 'success'} className="studio-toast print:hidden" visible={!!copyFeedback} replayKey={copyFeedback?.id}>
         {copyFeedback?.message}

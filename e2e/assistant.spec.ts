@@ -116,3 +116,19 @@ test('the answer is laid out: bold, lists, a table; nothing runs', async ({ page
   await expect(answer).toContainText('<img src=x')
   expect(await page.evaluate(() => (window as unknown as { pwned?: number }).pwned)).toBeUndefined()
 })
+
+test('a request to change the form is done by the page, not guessed by the model', async ({ page }) => {
+  const asked = await fakeAssistant(page, () => ({ status: 200, body: { answer: 'ne doit pas être appelé' } }))
+  await page.goto('/?brut=1500000#calculateur')
+  await page.getByRole('button', { name: 'Poser une question' }).click()
+  const dialog = page.getByRole('complementary', { name: 'Vos questions' })
+  await dialog.getByLabel('Votre question').fill('si j’ai 20h de suppl combien sera mon salaire ?')
+  await dialog.getByRole('button', { name: 'Envoyer la question' }).click()
+  await expect(dialog).toContainText('C’est renseigné dans le formulaire')
+  await expect(dialog).toContainText('20 h supplémentaires')
+  await expect(dialog).toContainText('Net après')
+  expect(asked).toHaveLength(0)
+  // The form itself now holds the hours.
+  await page.getByRole('button', { name: /Primes, heures supplémentaires/ }).click()
+  await expect(page.getByLabel('Premières heures')).toHaveValue('20')
+})

@@ -87,8 +87,8 @@ test('the page is ready to be found and shared', async ({ page, request }) => {
   expect(await robots.text()).toMatch(/Sitemap: .+\/sitemap\.xml/)
   const sitemap = await request.get('/sitemap.xml')
   expect(await sitemap.text()).toContain('<urlset')
-  const image = await request.get('/og.png')
-  expect(image.headers()['content-type']).toBe('image/png')
+  const image = await request.get('/og.jpg')
+  expect(image.headers()['content-type']).toBe('image/jpeg')
   expect((await image.body()).length).toBeGreaterThan(10_000)
 })
 

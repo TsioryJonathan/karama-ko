@@ -47,6 +47,8 @@ const TYPES = {
   '.woff2': 'font/woff2',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
 }
 
 export function createApp({ env = process.env, trustProxy = env.TRUST_PROXY === '1', ...options } = {}) {

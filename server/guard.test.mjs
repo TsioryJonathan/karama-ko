@@ -91,3 +91,10 @@ test('nothing, or something far too long, is handled', () => {
   assert.equal(long.ok, true)
   assert.ok(long.answer.length <= 2200)
 })
+
+test('a refusal inside the answer to an accepted question is retried', () => {
+  const check = checkAnswer('Bonjour ! Je ne peux répondre qu’aux questions sur votre simulation.', { scenarios: [] })
+  assert.equal(check.ok, false)
+  assert.equal(check.reason, 'refusal')
+  assert.equal(check.retry, true)
+})

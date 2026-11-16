@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { compute } from '../engine/compute'
+import { parseIntent, type Intent } from '../engine/intent'
 import type { Scenario } from '../engine/planning'
 import { formatAr } from '../lib/format'
 import { Markdown } from '../components/Markdown'
@@ -16,6 +17,7 @@ export function Assistant({
   toolTitle,
   suggestions,
   ask: requested,
+  onIntent,
 }: {
   scenarios: Scenario[]
   open: boolean
@@ -25,6 +27,8 @@ export function Assistant({
   suggestions: string[]
   /** A question the visitor asked by tapping « Pourquoi ce résultat ? »: answered at once. */
   ask?: { id: number; question: string }
+  /** Fills in the form for a request to change it; returns what was done, or null if this tool cannot. */
+  onIntent?: (intent: Intent) => string | null
 }) {
   const [configured, setConfigured] = useState<boolean | null>(null)
   const [question, setQuestion] = useState(suggestions[0])
@@ -60,9 +64,10 @@ export function Assistant({
 
   // Results are tied to the exact snapshot that was sent, not to later edits.
   const [snapshot, setSnapshot] = useState('')
+  const changedByAssistant = useRef(false)
   const context = scenarios.map((s) => ({ name: s.name, gross: s.gross, dependants: s.dependants }))
   const current = JSON.stringify(context)
-  const stale = !!answer && current !== snapshot
+  const stale = !!answer && current !== snapshot && !changedByAssistant.current
   const send = async (sent = question) => {
     controller.current?.abort()
     const abort = new AbortController()
@@ -73,6 +78,16 @@ export function Assistant({
     setError('')
     setAnswer('')
     setSnapshot(current)
+    changedByAssistant.current = false
+    const intent = onIntent ? parseIntent(sent) : null
+    const done = intent && onIntent ? onIntent(intent) : null
+    if (done) {
+      // Answered by the engine, not by a model: nothing is sent and the figures cannot be invented.
+      changedByAssistant.current = true
+      setAnswer(done)
+      setBusy(false)
+      return
+    }
     try {
       const response = await fetch('/api/assistant', {
         method: 'POST',
@@ -91,6 +106,8 @@ export function Assistant({
     }
   }
   const ready = configured === true && !busy
+  /** A change request is handled here, with or without the language model. */
+  const canSend = (text: string) => !busy && !!text.trim() && (configured === true || (!!onIntent && !!parseIntent(text)))
   // Another tool means another conversation: start clean with that tool's own first question.
   useEffect(() => {
     controller.current?.abort()
@@ -188,7 +205,7 @@ export function Assistant({
         className="assistant-form"
         onSubmit={(event) => {
           event.preventDefault()
-          if (ready && question.trim()) void send()
+          if (canSend(question)) void send()
         }}
       >
         <label htmlFor="assistant-question">Votre question</label>
@@ -221,7 +238,7 @@ export function Assistant({
               <ActionIcon id="close" />
             </button>
           ) : (
-            <button type="submit" className="icon-button" aria-label="Envoyer la question" disabled={!ready || !question.trim()}>
+            <button type="submit" className="icon-button" aria-label="Envoyer la question" disabled={!canSend(question)}>
               <ActionIcon id="send" />
             </button>
           )}

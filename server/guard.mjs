@@ -86,6 +86,9 @@ export function checkAnswer(answer, context) {
     return { ok: false, retry: true, reason: 'code', correction: 'Ta réponse contenait du code ou du balisage. N’en produis jamais : explique seulement les résultats, en français.' }
   if (OUT_OF_ROLE.some((pattern) => pattern.test(text)))
     return { ok: false, retry: false, reason: 'role', correction: '' }
+  // The question was accepted, so a refusal inside the answer is the model confusing itself: ask again.
+  if (/je ne peux répondre qu[’']aux questions/i.test(text))
+    return { ok: false, retry: true, reason: 'refusal', correction: 'La question portait bien sur la simulation. Réponds-y directement, sans la refuser ni saluer.' }
   const allowed = allowedNumbers(context)
   const invented = [...new Set(bigNumbers(text))].filter((n) => n >= MIN_MONEY && !near(allowed, n))
   if (invented.length)
