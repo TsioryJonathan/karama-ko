@@ -1,144 +1,146 @@
-import bareme2026 from '../baremes/2026.json'
+import scale2026 from '../scales/2026.json'
 
-export interface Tranche {
-  /** Borne haute de la tranche en Ariary, null pour la dernière. */
-  jusqua: number | null
-  /** Taux en pourcentage. */
-  taux: number
+export interface Bracket {
+  /** Upper bound of the bracket in Ariary, null for the last one. */
+  upTo: number | null
+  /** Rate in percent. */
+  rate: number
 }
 
-export interface Cotisation {
+export interface Contribution {
   id: string
-  nom: string
-  /** Taux en pourcentage. */
-  salarie: number
-  employeur: number
+  name: string
+  /** Rates in percent. */
+  employee: number
+  employer: number
 }
 
-export interface Bareme {
-  annee: number
-  enVigueurDepuis: string
-  misAJour: string
-  sme: number
-  multiplePlafond: number
+export interface Scale {
+  year: number
+  effectiveFrom: string
+  updatedAt: string
+  /** SME, the non-agricultural minimum hiring wage. */
+  minimumWage: number
+  /** Contributions are capped at this multiple of the minimum wage. */
+  ceilingMultiple: number
   irsa: {
-    arrondiBase: number
-    minimum: number
-    reductionParCharge: number
-    seuilReduction: number
-    tranches: Tranche[]
+    baseRounding: number
+    minimumTax: number
+    reliefPerDependant: number
+    reliefThreshold: number
+    brackets: Bracket[]
   }
-  cotisations: Cotisation[]
-  sources: { sujet: string; reference: string; url: string }[]
+  contributions: Contribution[]
+  sources: { topic: string; reference: string; url: string }[]
 }
 
-export interface LigneCotisation {
+export interface ContributionLine {
   id: string
-  nom: string
-  tauxSalarie: number
-  tauxEmployeur: number
-  salarie: number
-  employeur: number
-  plafonnee: boolean
+  name: string
+  employeeRate: number
+  employerRate: number
+  employee: number
+  employer: number
+  capped: boolean
 }
 
-export interface LigneTranche {
-  de: number
-  jusqua: number | null
-  taux: number
-  /** Part de la base imposable qui tombe dans cette tranche. */
-  assiette: number
-  impot: number
-  atteinte: boolean
+export interface BracketLine {
+  from: number
+  upTo: number | null
+  rate: number
+  /** Share of the taxable base that falls in this bracket. */
+  amount: number
+  tax: number
+  reached: boolean
 }
 
-export interface Resultat {
-  brut: number
-  charges: number
-  plafond: number
-  cotisations: LigneCotisation[]
-  /** Somme des parts salariales. */
-  retenuesSociales: number
-  baseImposable: number
-  tranches: LigneTranche[]
-  irsaBrut: number
-  reduction: number
-  minimumApplique: boolean
+export interface Result {
+  gross: number
+  dependants: number
+  ceiling: number
+  contributions: ContributionLine[]
+  /** Sum of the employee shares. */
+  socialDeductions: number
+  taxableBase: number
+  brackets: BracketLine[]
+  grossTax: number
+  relief: number
+  minimumApplied: boolean
   irsa: number
   net: number
-  /** (brut − net) / brut, entre 0 et 1. */
-  tauxEffectif: number
-  chargesPatronales: number
-  coutEmployeur: number
+  /** (gross − net) / gross, between 0 and 1. */
+  effectiveRate: number
+  employerCharges: number
+  employerCost: number
 }
 
-export const BAREME_2026 = bareme2026 as Bareme
+export const SCALE_2026 = scale2026 as Scale
 
-export function plafondAssiette(bareme: Bareme): number {
-  return bareme.sme * bareme.multiplePlafond
+export function contributionCeiling(scale: Scale): number {
+  return scale.minimumWage * scale.ceilingMultiple
 }
 
-/** Brut mensuel (Ariary entiers) → détail complet de la paie. */
-export function compute(brut: number, charges = 0, bareme: Bareme = BAREME_2026): Resultat {
-  brut = Math.max(0, Math.round(brut))
-  charges = Math.max(0, Math.floor(charges))
-  const plafond = plafondAssiette(bareme)
-  const assiette = Math.min(brut, plafond)
+/** Monthly gross salary (whole Ariary) → full payslip breakdown. */
+export function compute(gross: number, dependants = 0, scale: Scale = SCALE_2026): Result {
+  gross = Math.max(0, Math.round(gross))
+  dependants = Math.max(0, Math.floor(dependants))
+  const ceiling = contributionCeiling(scale)
+  const cappedGross = Math.min(gross, ceiling)
 
-  const cotisations = bareme.cotisations.map<LigneCotisation>((c) => ({
+  const contributions = scale.contributions.map<ContributionLine>((c) => ({
     id: c.id,
-    nom: c.nom,
-    tauxSalarie: c.salarie,
-    tauxEmployeur: c.employeur,
-    salarie: Math.round((assiette * c.salarie) / 100),
-    employeur: Math.round((assiette * c.employeur) / 100),
-    plafonnee: brut > plafond,
+    name: c.name,
+    employeeRate: c.employee,
+    employerRate: c.employer,
+    employee: Math.round((cappedGross * c.employee) / 100),
+    employer: Math.round((cappedGross * c.employer) / 100),
+    capped: gross > ceiling,
   }))
-  const retenuesSociales = cotisations.reduce((s, c) => s + c.salarie, 0)
-  const chargesPatronales = cotisations.reduce((s, c) => s + c.employeur, 0)
+  const socialDeductions = contributions.reduce((sum, c) => sum + c.employee, 0)
+  const employerCharges = contributions.reduce((sum, c) => sum + c.employer, 0)
 
-  const { arrondiBase, minimum, reductionParCharge, seuilReduction } = bareme.irsa
-  const baseImposable = Math.floor((brut - retenuesSociales) / arrondiBase) * arrondiBase
+  const { baseRounding, minimumTax, reliefPerDependant, reliefThreshold } = scale.irsa
+  const taxableBase = Math.floor((gross - socialDeductions) / baseRounding) * baseRounding
 
-  let de = 0
-  const tranches = bareme.irsa.tranches.map<LigneTranche>((t) => {
-    const haut = t.jusqua ?? Infinity
-    const part = Math.max(0, Math.min(baseImposable, haut) - de)
-    const ligne: LigneTranche = {
-      de,
-      jusqua: t.jusqua,
-      taux: t.taux,
-      assiette: part,
-      impot: Math.round((part * t.taux) / 100),
-      atteinte: baseImposable > de,
+  let from = 0
+  const brackets = scale.irsa.brackets.map<BracketLine>((b) => {
+    const top = b.upTo ?? Infinity
+    const amount = Math.max(0, Math.min(taxableBase, top) - from)
+    const line: BracketLine = {
+      from,
+      upTo: b.upTo,
+      rate: b.rate,
+      amount,
+      tax: Math.round((amount * b.rate) / 100),
+      reached: taxableBase > from,
     }
-    de = haut
-    return ligne
+    from = top
+    return line
   })
-  const irsaBrut = tranches.reduce((s, t) => s + t.impot, 0)
+  const grossTax = brackets.reduce((sum, b) => sum + b.tax, 0)
 
-  // Art. 01.03.19 : réduction réservée aux bases supérieures au seuil.
-  const reduction = baseImposable > seuilReduction ? charges * reductionParCharge : 0
-  // Art. 01.03.16 : l'impôt ne peut être inférieur au minimum, quelle que soit la tranche.
-  const plancher = brut > 0 ? minimum : 0
-  const irsa = Math.max(irsaBrut - reduction, plancher)
+  // CGI art. 01.03.19: the relief only applies above the threshold.
+  const relief = taxableBase > reliefThreshold ? dependants * reliefPerDependant : 0
+  // CGI art. 01.03.16: the tax cannot fall below the minimum, whatever the bracket.
+  const floor = gross > 0 ? minimumTax : 0
+  const irsa = Math.max(grossTax - relief, floor)
 
-  const net = brut - retenuesSociales - irsa
+  const net = gross - socialDeductions - irsa
   return {
-    brut,
-    charges,
-    plafond,
-    cotisations,
-    retenuesSociales,
-    baseImposable,
-    tranches,
-    irsaBrut,
-    reduction,
-    minimumApplique: irsa > irsaBrut - reduction,
+    gross,
+    dependants,
+    ceiling,
+    contributions,
+    socialDeductions,
+    taxableBase,
+    brackets,
+    grossTax,
+    relief,
+    minimumApplied: irsa > grossTax - relief,
     irsa,
     net,
-    tauxEffectif: brut > 0 ? (brut - net) / brut : 0,
-    chargesPatronales,
-    coutEmployeur: brut + chargesPatronales,
+    effectiveRate: gross > 0 ? (gross - net) / gross : 0,
+    employerCharges,
+    employerCost: gross + employerCharges,
   }
 }

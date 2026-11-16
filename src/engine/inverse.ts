@@ -1,28 +1,28 @@
-import { BAREME_2026, compute, type Bareme } from './compute'
+import { SCALE_2026, compute, type Scale } from './compute'
 
 /**
- * Net voulu → plus petit brut qui donne au moins ce net.
+ * Target net → smallest gross that yields at least that net.
  *
- * Le net ne croît de façon certaine que par pas de 100 Ar de brut (les
- * cotisations s'arrondissent à l'ariary et la base à la centaine), donc la
- * dichotomie se fait sur les centaines, puis on affine à l'ariary près.
+ * Net is only guaranteed to grow per 100 Ar step of gross (contributions round
+ * to the Ariary and the taxable base to the hundred), so the bisection runs on
+ * hundreds and is then refined to the Ariary.
  */
-export function inverse(netVise: number, charges = 0, bareme: Bareme = BAREME_2026): number {
-  netVise = Math.max(0, Math.round(netVise))
-  if (netVise === 0) return 0
-  const net = (brut: number) => compute(brut, charges, bareme).net
+export function inverse(targetNet: number, dependants = 0, scale: Scale = SCALE_2026): number {
+  targetNet = Math.max(0, Math.round(targetNet))
+  if (targetNet === 0) return 0
+  const netOf = (gross: number) => compute(gross, dependants, scale).net
 
-  let bas = Math.floor(netVise / 100)
-  let haut = Math.ceil((netVise * 2 + 10_000) / 100)
-  while (bas < haut) {
-    const milieu = Math.floor((bas + haut) / 2)
-    if (net(milieu * 100) >= netVise) haut = milieu
-    else bas = milieu + 1
+  let low = Math.floor(targetNet / 100)
+  let high = Math.ceil((targetNet * 2 + 10_000) / 100)
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2)
+    if (netOf(mid * 100) >= targetNet) high = mid
+    else low = mid + 1
   }
 
-  const debut = Math.max(0, (bas - 1) * 100)
-  for (let brut = debut; brut <= bas * 100; brut++) {
-    if (net(brut) >= netVise) return brut
+  const start = Math.max(0, (low - 1) * 100)
+  for (let gross = start; gross <= low * 100; gross++) {
+    if (netOf(gross) >= targetNet) return gross
   }
-  return bas * 100
+  return low * 100
 }

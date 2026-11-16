@@ -76,7 +76,7 @@
   --font-ui: 'Cabinet Grotesk', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 
-  /* Échelle typographique : 12 · 14 · 16 · 20 · 24 · 32 · 48 · 96 */
+  /* Type scale: 12 · 14 · 16 · 20 · 24 · 32 · 48 · 96 */
   --text-*: initial;
   --text-12: 12px;
   --text-14: 14px;
@@ -131,7 +131,7 @@
 }
 
 @layer components {
-  /* Label de case : capitales grises 12 px. */
+  /* Cell label: 12 px grey capitals. */
   .label {
     font-size: 12px;
     line-height: 1.5;
@@ -140,8 +140,8 @@
     text-transform: uppercase;
     color: var(--ink-muted);
   }
-  /* Montants alignés comme sur un relevé. */
-  .chiffre {
+  /* Amounts aligned like on a bank statement. */
+  .figure {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -149,6 +149,7 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    word-spacing: -0.3em;
   }
   .btn {
     display: inline-flex;
@@ -165,14 +166,14 @@
       background-color 150ms,
       color 150ms;
   }
-  .btn-plein {
+  .btn-solid {
     background: var(--ink);
     color: var(--bg);
   }
-  .btn-filet {
+  .btn-outline {
     border-color: var(--line);
   }
-  .btn-filet:hover {
+  .btn-outline:hover {
     border-color: var(--ink);
   }
 }
