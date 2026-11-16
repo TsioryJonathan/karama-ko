@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AmountField } from './components/AmountField'
-import { Stepper, Switch } from './components/Controls'
+import { Breakdown } from './components/Breakdown'
+import { Stepper, Switch, Tabs } from './components/Controls'
+import { EmployerPanel } from './components/EmployerPanel'
 import { ResultGrid } from './components/ResultGrid'
+import { Sources } from './components/Sources'
 import { SCALE_2026, compute } from './engine/compute'
 import { inverse } from './engine/inverse'
 import { formatAr } from './lib/format'
-import { MAX_DEPENDANTS, loadInitial, persist, type State } from './lib/state'
+import { MAX_DEPENDANTS, loadInitial, persist, type State, type View } from './lib/state'
 
 const MAX_AMOUNT = 1_000_000_000
 
@@ -37,7 +40,15 @@ export function App() {
         <a href="./" className="font-display text-20 font-semibold tracking-[-0.02em]">
           Karama
         </a>
-        <ThemeToggle />
+        <nav className="flex items-center gap-6 print:hidden">
+          <a
+            href="#baremes"
+            className="flex min-h-11 items-center text-14 font-medium text-muted transition-colors duration-150 hover:text-ink"
+          >
+            Barèmes et sources
+          </a>
+          <ThemeToggle />
+        </nav>
       </header>
 
       <main className="grid gap-x-6 gap-y-12 pt-12 pb-24 lg:grid-cols-12 lg:py-24">
@@ -81,10 +92,25 @@ export function App() {
           </div>
         </div>
 
-        <div className="lg:col-span-8">
+        <div className="space-y-6 lg:col-span-8">
+          <div className="print:hidden">
+            <Tabs<View>
+              label="Point de vue"
+              tabs={[
+                { id: 'employee', name: 'Salarié' },
+                { id: 'employer', name: 'Employeur' },
+              ]}
+              active={state.view}
+              onChange={(view) => update({ view })}
+            />
+          </div>
           <ResultGrid result={result} />
+          {result && state.view === 'employer' && <EmployerPanel result={result} />}
+          {result && <Breakdown result={result} />}
         </div>
       </main>
+
+      <Sources />
 
       {result && (
         <div className="fixed inset-x-0 bottom-0 flex items-baseline justify-between border-t border-line bg-surface px-6 py-3 lg:hidden print:hidden">
