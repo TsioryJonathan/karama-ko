@@ -1,5 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -36,14 +38,17 @@ const devApi = (): Plugin => ({
   name: 'karama-dev-api',
   apply: 'serve',
   async configureServer(server) {
+    // Loaded by address at run time, on purpose: written as plain imports, the config bundler would try to
+    // resolve the production engine (dist-server), which does not exist yet when the first build starts.
+    const load = (file: string) => import(/* @vite-ignore */ pathToFileURL(resolve(process.cwd(), file)).href)
     const [{ createApi }, { readRequest, sendResponse, visitorAddress }] = await Promise.all([
-      import('./server/api.mjs'),
-      import('./server/node-adapter.mjs'),
+      load('server/api.mjs'),
+      load('server/node-adapter.mjs'),
     ])
     const env = { ...loadEnv(server.config.mode, process.cwd(), ''), APP_ORIGIN: '' }
     const api = createApi({
       env,
-      context: async (value) => (await server.ssrLoadModule('/src/engine/assistant.ts')).assistantContext(value),
+      context: async (value: unknown) => (await server.ssrLoadModule('/src/engine/assistant.ts')).assistantContext(value),
     })
     server.middlewares.use('/api', async (req, res, next) => {
       const path = new URL(req.url ?? '/', 'http://localhost').pathname
