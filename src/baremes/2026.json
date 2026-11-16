@@ -1,0 +1,48 @@
+{
+  "annee": 2026,
+  "enVigueurDepuis": "2026-10-01",
+  "misAJour": "2026-11-16",
+  "sme": 315000,
+  "multiplePlafond": 8,
+  "irsa": {
+    "arrondiBase": 100,
+    "minimum": 3000,
+    "reductionParCharge": 2000,
+    "seuilReduction": 350000,
+    "tranches": [
+      { "jusqua": 350000, "taux": 0 },
+      { "jusqua": 400000, "taux": 5 },
+      { "jusqua": 500000, "taux": 10 },
+      { "jusqua": 600000, "taux": 15 },
+      { "jusqua": 4000000, "taux": 20 },
+      { "jusqua": null, "taux": 25 }
+    ]
+  },
+  "cotisations": [
+    { "id": "cnaps", "nom": "CNaPS", "salarie": 1, "employeur": 13 },
+    { "id": "ostie", "nom": "OSTIE", "salarie": 1, "employeur": 5 },
+    { "id": "fmfp", "nom": "FMFP", "salarie": 0, "employeur": 1 }
+  ],
+  "sources": [
+    {
+      "sujet": "Barème IRSA, minimum de perception, arrondi de la base",
+      "reference": "Code général des impôts, art. 01.03.16, suivant la loi de finances 2026 (Loi n° 2025-021)",
+      "url": "https://textes.lexxika.com/droit-malagasy/code-des-impots-2026-2"
+    },
+    {
+      "sujet": "Réduction pour personnes à charge",
+      "reference": "Code général des impôts, art. 01.03.19",
+      "url": "https://textes.lexxika.com/droit-malagasy/code-des-impots-2026-2"
+    },
+    {
+      "sujet": "SME et plafond des cotisations",
+      "reference": "CNaPS, historique du SME : 315 000 Ar à compter du 1er octobre 2026, plafond 2 520 000 Ar",
+      "url": "https://www.cnaps.mg/historique-sme"
+    },
+    {
+      "sujet": "Taux CNaPS, OSTIE et FMFP",
+      "reference": "CLEISS, taux de cotisation au 1er janvier 2026",
+      "url": "https://www.cleiss.fr/docs/cotisations/madagascar.html"
+    }
+  ]
+}
