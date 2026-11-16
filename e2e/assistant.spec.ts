@@ -132,3 +132,19 @@ test('a request to change the form is done by the page, not guessed by the model
   await page.getByRole('button', { name: /Primes, heures supplémentaires/ }).click()
   await expect(page.getByLabel('Premières heures')).toHaveValue('20')
 })
+
+test('earlier questions and answers stay on screen', async ({ page }) => {
+  let n = 0
+  await fakeAssistant(page, () => ({ status: 200, body: { answer: `Réponse numéro ${++n}` } }))
+  await page.goto('/?brut=1500000#calculateur')
+  await page.getByRole('button', { name: 'Poser une question' }).click()
+  const dialog = page.getByRole('complementary', { name: 'Vos questions' })
+  for (const question of ['première question', 'deuxième question']) {
+    await dialog.getByLabel('Votre question').fill(question)
+    await dialog.getByRole('button', { name: 'Envoyer la question' }).click()
+    await expect(dialog).toContainText(question)
+  }
+  await expect(dialog).toContainText('première question')
+  await expect(dialog).toContainText('Réponse numéro 1')
+  await expect(dialog).toContainText('Réponse numéro 2')
+})

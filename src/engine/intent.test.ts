@@ -3,7 +3,7 @@ import { parseIntent } from './intent'
 
 describe('what the visitor asks to change', () => {
   it('overtime, in the ways people write it', () => {
-    for (const question of ['si j’ai 20h de suppl combien sera mon salaire ?', 'avec 20 heures supplémentaires', '20 h sup', 'et si je fais 20h supp ?'])
+    for (const question of ['si j’ai 20h de suppl combien sera mon salaire ?', 'avec 20 heures supplémentaires', '20 h sup', 'et si je fais 20h supp ?', 'met 20h de suppl'])
       expect(parseIntent(question), question).toEqual({ hours: 20 })
     expect(parseIntent('12,5 heures supplémentaires')).toEqual({ hours: 12.5 })
   })

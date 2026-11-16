@@ -35,10 +35,16 @@ export function Assistant({
   /** What was sent, frozen: the field is free to be typed in again. */
   const [asked, setAsked] = useState('')
   const [answer, setAnswer] = useState('')
+  /** The exchanges before the current one, kept on screen until the tool changes. */
+  const [history, setHistory] = useState<{ asked: string; answer: string }[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const controller = useRef<AbortController | null>(null)
   const field = useRef<HTMLTextAreaElement>(null)
+  const latestAnswer = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (answer) latestAnswer.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [answer])
   // Asked once, when the panel is first opened: pages that never open it make no request at all.
   useEffect(() => {
     if (!open || configured !== null) return
@@ -72,6 +78,7 @@ export function Assistant({
     controller.current?.abort()
     const abort = new AbortController()
     controller.current = abort
+    if (answer && asked) setHistory((h) => [...h, { asked, answer }].slice(-8))
     setAsked(sent)
     setQuestion('')
     setBusy(true)
@@ -114,6 +121,7 @@ export function Assistant({
     setBusy(false)
     setAnswer('')
     setAsked('')
+    setHistory([])
     setError('')
     setQuestion(suggestions[0])
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,7 +174,13 @@ export function Assistant({
             L’assistant n’est pas connecté sur cette installation. Les outils de calcul restent disponibles.
           </BrandFeedback>
         )}
-        {!answer && !busy && (
+        {history.map((turn, i) => (
+          <div className="assistant-answer assistant-past" key={i}>
+            <p className="assistant-asked">{turn.asked}</p>
+            <Markdown text={turn.answer} />
+          </div>
+        ))}
+        {!answer && !busy && history.length === 0 && (
           <div className="assistant-suggestions">
             <p>Questions fréquentes</p>
             {suggestions.map((suggestion) => (
@@ -194,7 +208,7 @@ export function Assistant({
           </p>
         )}
         {answer && (
-          <div className="assistant-answer" aria-live="polite">
+          <div className="assistant-answer" aria-live="polite" ref={latestAnswer}>
             <p className="assistant-asked">{asked}</p>
             <Markdown text={answer} />
             <small>Réponse générée par une IA : les montants calculés par les outils font foi.</small>
