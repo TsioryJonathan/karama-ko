@@ -1,13 +1,13 @@
-import { SCALE_2026, type Result } from '../engine/compute'
+import { SCALE, type Result } from '../engine/compute'
 import { NBSP, formatAr, formatDeduction, formatNumber, formatPercent, formatRate } from '../lib/format'
 import type { Mode } from '../lib/state'
+import type { Pay } from '../engine/pay'
 import { Breakdown } from './Breakdown'
-import { ShareActions } from './ShareActions'
 import { useCountUp } from './useCountUp'
 
 const EMPTY = '—'
 /** Employer lines shown before any amount is typed. */
-const SCALE_ROWS = SCALE_2026.contributions
+const SCALE_ROWS = SCALE.contributions
 
 /** Approximate width of the headline figure in ems, so it always fits the card. */
 function widthInEm(n: number): number {
@@ -19,7 +19,7 @@ function widthInEm(n: number): number {
 function Row({ label, dot, value, total }: { label: string; dot?: string; value: string; total?: boolean }) {
   return (
     <div
-      className={`flex min-h-10 items-center justify-between gap-4 border-t ${total ? 'border-ink font-bold' : 'border-line'}`}
+      className={`flex min-h-10 items-center justify-between gap-4 border-t ${total ? 'mt-1 rounded border-transparent bg-accent/12 px-3 font-bold text-accent' : 'border-line'}`}
     >
       <dt className="flex items-center gap-3">
         {dot && <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden="true" />}
@@ -34,8 +34,11 @@ function Row({ label, dot, value, total }: { label: string; dot?: string; value:
 export function ResultCard({
   result: r,
   mode,
+  pay,
 }: {
   result: Result | null
+  /** Set when bonuses, overtime or benefits are included. */
+  pay?: Pay | null
   /** In net mode the headline is the gross to ask for. */
   mode: Mode
 }) {
@@ -104,11 +107,21 @@ export function ResultCard({
             Pour le salarié
           </h3>
           <dl>
+            {pay && (
+              <>
+                <Row label="Salaire de base" value={formatNumber(pay.base)} />
+                {pay.bonus > 0 && <Row label="Primes" value={`+${formatNumber(pay.bonus)}`} />}
+                {pay.overtime.pay > 0 && <Row label="Heures supplémentaires" value={`+${formatNumber(pay.overtime.pay)}`} />}
+              </>
+            )}
             <Row label="Salaire brut" value={r ? formatNumber(r.gross) : EMPTY} />
             {segments.slice(1).map((s) => (
               <Row key={s.name} label={s.name} dot={s.color} value={r ? formatDeduction(s.amount) : EMPTY} />
             ))}
             <Row total label="Net" dot="bg-accent" value={r ? formatAr(r.net) : EMPTY} />
+            {pay && pay.benefits.total > 0 && (
+              <Row label="Avantages en nature, non versés" value={`${formatNumber(pay.benefits.total)}`} />
+            )}
           </dl>
         </section>
 
@@ -139,7 +152,6 @@ export function ResultCard({
       {r && (
         <div className="mt-5 space-y-3">
           <Breakdown result={r} />
-          <ShareActions title={`Karama : ${formatAr(r.net)} net pour ${formatAr(r.gross)} brut`} />
         </div>
       )}
       </div>

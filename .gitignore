@@ -4,3 +4,17 @@ dev-dist
 *.local
 .taste-skill
 .impeccable
+
+dist-server
+.env
+.env.*
+!.env.example
+
+# Test and deploy output
+test-results
+playwright-report
+.vercel
+
+# Local session logs, not part of the project
+codex-session-*.md
+2026-*-local-command-caveat*.txt

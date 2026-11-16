@@ -1,4 +1,5 @@
 import scale2026 from '../scales/2026.json'
+import { scaleInForce } from '../scales'
 
 export interface Bracket {
   /** Upper bound of the bracket in Ariary, null for the last one. */
@@ -72,16 +73,30 @@ export interface Result {
   effectiveRate: number
   employerCharges: number
   employerCost: number
+  /** Overtime pay left out of the IRSA base (CGI art. 01.03.03, 9°). */
+  taxExempt: number
+  /** Taxable value of benefits in kind (CGI art. 01.03.08), added to the IRSA base only. */
+  benefitsTaxable: number
+}
+
+/** What the plain gross does not say: exempt overtime and benefits in kind. */
+export interface Extras {
+  taxExempt?: number
+  benefitsTaxable?: number
 }
 
 export const SCALE_2026 = scale2026 as Scale
+/** The scale in force today: what every tool uses. */
+export const SCALE: Scale = scaleInForce()
 
 export function contributionCeiling(scale: Scale): number {
   return scale.minimumWage * scale.ceilingMultiple
 }
 
 /** Monthly gross salary (whole Ariary) → full payslip breakdown. */
-export function compute(gross: number, dependants = 0, scale: Scale = SCALE_2026): Result {
+export function compute(gross: number, dependants = 0, scale: Scale = SCALE, extras: Extras = {}): Result {
+  const taxExempt = Math.max(0, Math.round(extras.taxExempt ?? 0))
+  const benefitsTaxable = Math.max(0, Math.round(extras.benefitsTaxable ?? 0))
   gross = Math.max(0, Math.round(gross))
   dependants = Math.max(0, Math.floor(dependants))
   const ceiling = contributionCeiling(scale)
@@ -100,7 +115,8 @@ export function compute(gross: number, dependants = 0, scale: Scale = SCALE_2026
   const employerCharges = contributions.reduce((sum, c) => sum + c.employer, 0)
 
   const { baseRounding, minimumTax, reliefPerDependant, reliefThreshold } = scale.irsa
-  const taxableBase = Math.floor((gross - socialDeductions) / baseRounding) * baseRounding
+  const taxableBase =
+    Math.max(0, Math.floor((gross + benefitsTaxable - taxExempt - socialDeductions) / baseRounding)) * baseRounding
 
   let from = 0
   const brackets = scale.irsa.brackets.map<BracketLine>((b) => {
@@ -142,5 +158,7 @@ export function compute(gross: number, dependants = 0, scale: Scale = SCALE_2026
     effectiveRate: gross > 0 ? (gross - net) / gross : 0,
     employerCharges,
     employerCost: gross + employerCharges,
+    taxExempt,
+    benefitsTaxable,
   }
 }

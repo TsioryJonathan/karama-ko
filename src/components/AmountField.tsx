@@ -37,7 +37,7 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral', au
       <label htmlFor={id} className="block text-16 font-bold">
         {label}
       </label>
-      <div className="mt-2 flex items-baseline gap-3 rounded-lg border-2 border-ink bg-surface px-5 focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-accent">
+      <div className="amount-box mt-2 flex items-baseline gap-3 rounded-lg border-2 border-ink bg-surface px-5 focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-accent">
         <input
           ref={ref}
           id={id}

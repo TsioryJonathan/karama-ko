@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Karama-Ko · Le sceau</title>
+<style>
+@font-face{font-family:Cabinet;src:url('/fonts/CabinetGrotesk-800.woff2')}@font-face{font-family:Satoshi;src:url('/fonts/Satoshi-400.woff2')}
+*{box-sizing:border-box}body{margin:0;background:#f4f2ed;color:#1c1b19;font-family:Satoshi,system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:48px 28px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d2cdc2;padding-bottom:20px}header a{color:inherit;text-decoration:none;font-family:Cabinet;font-size:25px}button{padding:10px 16px;border:1px solid #7c766a;border-radius:6px;color:inherit;background:transparent;cursor:pointer;font:inherit}button:focus-visible,a:focus-visible{outline:2px solid #7a2640;outline-offset:4px}h1{font:800 clamp(38px,6vw,64px)/1.05 Cabinet;margin:48px 0 16px;letter-spacing:-.03em}p{max-width:60ch;line-height:1.6;color:#55524c}.hero{display:flex;align-items:center;gap:48px;margin:36px 0 48px}.hero img{width:220px;height:220px}.hero h2{font:800 32px Cabinet;margin:0}.hero a{color:inherit;text-underline-offset:4px}.states{display:grid;grid-template-columns:repeat(6,1fr);gap:20px;border-top:1px solid #d2cdc2;padding-top:32px}figure{margin:0;text-align:center}figure img{display:block;width:100%;max-width:112px;height:auto;margin:auto}figcaption{margin-top:16px;font-size:14px}.sizes{display:flex;gap:24px;align-items:center;margin-top:44px}small{color:#55524c}.dark{background:#0e0e0e;color:#f2f2f0;color-scheme:dark}.dark p,.dark small{color:#a3a19c}.dark header,.dark .states{border-color:#2b2b2b}@media(max-width:650px){main{padding:24px 20px}.hero{flex-direction:column;align-items:flex-start;gap:16px}.states{grid-template-columns:repeat(3,1fr);row-gap:32px}}
+</style>
+</head>
+<body>
+<main>
+<header><a href="/">Karama-Ko</a><button type="button" id="theme" aria-pressed="false">Fond sombre</button></header>
+<h1>Un sceau pour votre atelier.</h1>
+<p>Le K de Karama-Ko, entouré d’un guillochis inspiré des billets de banque. Un symbole fixe, une gravure légère et un mouvement réservé à l’attente.</p>
+<section class="hero" aria-label="Logo principal">
+<img src="karama-mark.svg" alt="Monogramme K bordeaux au centre d’un sceau guilloché" width="220" height="220" />
+<div><h2>Karama-Ko</h2><p>Votre salaire, plus clair.</p><a href="karama-mark.svg" download>Télécharger le logo SVG</a></div>
+</section>
+<section class="states" aria-label="Déclinaisons des états">
+<figure><a href="karama-mark.svg" download aria-label="Télécharger le logo"><img src="karama-mark.svg" alt="" width="112" height="112" /></a><figcaption>Logo</figcaption></figure>
+<figure><a href="karama-loading.svg" download aria-label="Télécharger le chargement animé"><img src="karama-loading.svg" alt="" width="112" height="112" /></a><figcaption>Chargement</figcaption></figure>
+<figure><a href="karama-empty.svg" download aria-label="Télécharger l’état vide"><img src="karama-empty.svg" alt="" width="112" height="112" /></a><figcaption>État vide</figcaption></figure>
+<figure><a href="karama-success.svg" download aria-label="Télécharger la confirmation"><img src="karama-success.svg" alt="" width="112" height="112" /></a><figcaption>Confirmation</figcaption></figure>
+<figure><a href="karama-error.svg" download aria-label="Télécharger l’erreur"><img src="karama-error.svg" alt="" width="112" height="112" /></a><figcaption>Erreur</figcaption></figure>
+<figure><a href="karama-offline.svg" download aria-label="Télécharger l’état hors connexion"><img src="karama-offline.svg" alt="" width="112" height="112" /></a><figcaption>Hors connexion</figcaption></figure>
+</section>
+<div class="sizes" aria-label="Tailles du symbole"><img src="karama-mark.svg" width="24" height="24" alt="Logo en 24 pixels" /><img src="karama-mark.svg" width="40" height="40" alt="Logo en 40 pixels" /><img src="karama-mark.svg" width="64" height="64" alt="Logo en 64 pixels" /><small>24 · 40 · 64 px</small></div>
+<p><small>SVG vectoriels, fond transparent. Palette claire et sombre automatique. L’animation respecte la préférence de réduction des mouvements. Cliquez sur chaque état pour télécharger son SVG.</small></p>
+</main>
+<script src="preview.js"></script>
+</body>
+</html>

@@ -313,3 +313,19 @@ Chaque phase est livrable seule ; le socle se construit pendant la phase 1 et ne
 - [Madagascar | 2026 Finance Law — PaySpace](https://support.payspace.com/portal/en/kb/articles/madagascar-2026-finance-law)
 - [Calcul IRSA Madagascar 2026 — macalculatriceenligne.com](https://macalculatriceenligne.com/afrique/calcul-impots-madagascar/)
 - [IRSA – PLFI 2027 : le minimum de perception — Newsmada](https://newsmada.com/?p=202863)
+
+
+## Extension livrée : atelier salaire et assistant facultatif
+
+À la demande de l’utilisateur, le périmètre dépasse maintenant la phase 1 : comparaison de deux à quatre situations, négociation à partir d’un supplément net, graphique interactif, rapprochement manuel d’une fiche de paie, calcul depuis le budget employeur, budget d’équipe, projection de douze mois à barème constant, sauvegardes locales, partage/export et widget iframe.
+
+Le calculateur reste le premier écran. L’atelier est séparé et conserve la palette bordeaux, le thème clair adouci et Cabinet Grotesk/Satoshi adoptés après les retours de design. Les demandes explicites de fond animé et de cases blanches au survol constituent des exceptions aux interdictions initiales sur les animations décoratives.
+
+Un petit backend a été explicitement autorisé pour l’assistant IA. Il conserve la clé côté serveur et recalcule les résultats avant toute transmission au fournisseur. Le calcul local et les outils ne dépendent pas de ce service. L’IA explique les scénarios sur demande ; elle ne calcule pas les salaires. Son activation nécessite une clé API et peut entraîner des frais de fournisseur.
+
+Les règles de paie initiales ne sont pas modifiées ni nouvellement certifiées. La projection applique le seul barème d’octobre 2026 à chacun des douze mois ; elle ne représente pas une reconstitution historique de l’année. Les primes, avantages, heures supplémentaires, OCR, comptes utilisateurs et observatoire de salaires restent hors périmètre.
+
+
+### Accueil et identité : Karama-Ko
+
+La demande suivante remplace le calculateur comme unique premier écran : un accueil avec billets 3D originaux, le nom Karama-Ko superposé, puis un répertoire des outils par besoin. Au défilement, les textes s’effacent et les billets se rassemblent. Le calculateur reste directement accessible et les liens de simulation existants l’ouvrent sans passer par l’accueil. L’animation utilise Three.js, avec réduction des animations et repli statique.

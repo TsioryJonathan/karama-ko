@@ -1,0 +1,39 @@
+name: Scale watch
+
+# Once a week, check that the official texts behind the salary scale have not moved.
+# Nothing is changed automatically: a change opens an issue, and a person reviews it.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: check
+        run: |
+          set +e
+          node scripts/check-sources.mjs 2> report.txt
+          echo "failed=$?" >> "$GITHUB_OUTPUT"
+          cat report.txt
+      - if: steps.check.outputs.failed != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh issue list --label scale-watch --state open --json number --jq '.[0].number')
+          body=$(printf 'The weekly source check found something to review.\n\n```\n%s\n```\n\nRead the changed texts, update `src/scales`, then run `node scripts/check-sources.mjs --update`.' "$(cat report.txt)")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh label create scale-watch --color B60205 --description "Official sources changed" 2>/dev/null || true
+            gh issue create --title "Salary scale: sources to review" --label scale-watch --body "$body"
+          fi

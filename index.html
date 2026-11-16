@@ -3,26 +3,112 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Karama · Salaire net et IRSA à Madagascar</title>
+    <title>Karama-Ko · Calculateur de salaire net et IRSA à Madagascar</title>
     <meta
       name="description"
-      content="Du salaire brut au net à Madagascar : IRSA, CNaPS, OSTIE et coût employeur selon le barème 2026. Calcul dans le navigateur, sans compte."
+      content="Calculez votre salaire net à Madagascar (IRSA, CNaPS, OSTIE), comparez des offres, préparez une embauche ou une fin de contrat. Gratuit, sans compte."
     />
-    <meta name="theme-color" content="#e6e5e1" media="(prefers-color-scheme: light)" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="%SITE_URL%/" />
+    <meta name="author" content="Karama-Ko" />
+    <meta name="application-name" content="Karama-Ko" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Karama-Ko" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:title" content="Karama-Ko · Votre salaire net à Madagascar" />
+    <meta
+      property="og:description"
+      content="Du brut au net, IRSA, CNaPS et OSTIE : comprenez votre salaire, comparez vos offres, préparez une embauche. Gratuit, calcul dans votre navigateur."
+    />
+    <meta property="og:image" content="%SITE_URL%/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Karama-Ko : des billets en liasse et le titre Karama-Ko" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Karama-Ko · Votre salaire net à Madagascar" />
+    <meta
+      name="twitter:description"
+      content="Du brut au net, IRSA, CNaPS et OSTIE : comprenez votre salaire, comparez vos offres, préparez une embauche."
+    />
+    <meta name="twitter:image" content="%SITE_URL%/og.png" />
+    <meta name="twitter:image:alt" content="Karama-Ko : des billets en liasse et le titre Karama-Ko" />
+
+    <meta name="theme-color" content="#f4f2ed" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0F0F0E" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "%SITE_URL%/#site",
+            "url": "%SITE_URL%/",
+            "name": "Karama-Ko",
+            "inLanguage": "fr",
+            "description": "Outils pour comprendre et préparer un salaire à Madagascar."
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "%SITE_URL%/#app",
+            "name": "Karama-Ko",
+            "url": "%SITE_URL%/",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Tous, dans le navigateur",
+            "inLanguage": "fr",
+            "isAccessibleForFree": true,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "MGA" },
+            "areaServed": { "@type": "Country", "name": "Madagascar" },
+            "featureList": [
+              "Calcul du salaire net à partir du brut, et du brut à partir du net",
+              "IRSA, CNaPS et OSTIE au barème en vigueur",
+              "Primes, heures supplémentaires et avantages en nature",
+              "Comparaison d'offres d'emploi",
+              "Préparation d'une négociation, d'une embauche ou d'un budget d'équipe",
+              "Calcul des indemnités de fin de contrat"
+            ]
+          }
+        ]
+      }
+    </script>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="preload" href="/fonts/CabinetGrotesk-800.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/Satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
-    <script>
-      try {
-        var t = localStorage.getItem('karama:theme')
-        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        document.documentElement.dataset.theme = t
-      } catch (e) {}
-    </script>
+    <script src="/theme-init.js"></script>
+    <style>
+      html { background: #f4f2ed; color-scheme: light; }
+      html[data-theme='dark'] { background: #0e0e0e; color: #f2f2f0; color-scheme: dark; }
+      #boot { display: grid; place-content: center; justify-items: center; gap: 14px; min-height: 100dvh; font-family: system-ui, sans-serif; }
+      #boot b { font: 800 24px/1 'Cabinet Grotesk', system-ui, sans-serif; letter-spacing: -0.03em; }
+      #boot img { display: block; }
+      #boot p { margin: 0; color: #55524c; font-size: 14px; }
+      html[data-theme='dark'] #boot p { color: #a3a19c; }
+
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot" role="status"><img src="/brand/karama-loading.svg" width="112" height="112" alt="" aria-hidden="true" /><b>Karama-Ko</b><p>Préparation de votre atelier…</p></div>
+    </div>
+    <noscript>
+      <main style="max-width: 640px; margin: 0 auto; padding: 24px; font-family: system-ui, sans-serif; line-height: 1.5">
+        <h1>Karama-Ko : votre salaire net à Madagascar</h1>
+        <p>
+          Calculez votre salaire net (IRSA, CNaPS, OSTIE), comparez des offres, préparez une embauche ou une fin de
+          contrat. Les calculs se font dans votre navigateur : activez JavaScript puis rechargez la page.
+        </p>
+        <ul>
+          <li>Du salaire brut au net, ou du net au brut</li>
+          <li>Primes, heures supplémentaires et avantages en nature</li>
+          <li>Comparaison d’offres, négociation, budget d’équipe, projection sur douze mois</li>
+          <li>Indemnités de fin de contrat</li>
+        </ul>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

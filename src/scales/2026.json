@@ -10,18 +10,51 @@
     "reliefPerDependant": 2000,
     "reliefThreshold": 350000,
     "brackets": [
-      { "upTo": 350000, "rate": 0 },
-      { "upTo": 400000, "rate": 5 },
-      { "upTo": 500000, "rate": 10 },
-      { "upTo": 600000, "rate": 15 },
-      { "upTo": 4000000, "rate": 20 },
-      { "upTo": null, "rate": 25 }
+      {
+        "upTo": 350000,
+        "rate": 0
+      },
+      {
+        "upTo": 400000,
+        "rate": 5
+      },
+      {
+        "upTo": 500000,
+        "rate": 10
+      },
+      {
+        "upTo": 600000,
+        "rate": 15
+      },
+      {
+        "upTo": 4000000,
+        "rate": 20
+      },
+      {
+        "upTo": null,
+        "rate": 25
+      }
     ]
   },
   "contributions": [
-    { "id": "cnaps", "name": "CNaPS", "employee": 1, "employer": 13 },
-    { "id": "ostie", "name": "OSTIE", "employee": 1, "employer": 5 },
-    { "id": "fmfp", "name": "FMFP", "employee": 0, "employer": 1 }
+    {
+      "id": "cnaps",
+      "name": "CNaPS",
+      "employee": 1,
+      "employer": 13
+    },
+    {
+      "id": "ostie",
+      "name": "OSTIE",
+      "employee": 1,
+      "employer": 5
+    },
+    {
+      "id": "fmfp",
+      "name": "FMFP",
+      "employee": 0,
+      "employer": 1
+    }
   ],
   "sources": [
     {
@@ -43,6 +76,21 @@
       "topic": "Taux CNaPS, OSTIE et FMFP",
       "reference": "CLEISS, taux de cotisation au 1er janvier 2026",
       "url": "https://www.cleiss.fr/docs/cotisations/madagascar.html"
+    },
+    {
+      "topic": "Heures supplémentaires exonérées d’IRSA (jusqu’à 20 heures), primes imposables",
+      "reference": "Code général des impôts, art. 01.03.02 et 01.03.03, 9°",
+      "url": "https://textes.lexxika.com/droit-malagasy/code-des-impots-2026-2"
+    },
+    {
+      "topic": "Avantages en nature : logement 50 %, véhicule et téléphone 15 %, autres à la valeur réelle",
+      "reference": "Code général des impôts, art. 01.03.08",
+      "url": "https://textes.lexxika.com/droit-malagasy/code-des-impots-2026-2"
+    },
+    {
+      "topic": "Durée légale (173,33 h par mois), congé payé (2,5 jours par mois), indemnité de licenciement économique (10 jours par année, 6 mois au plus), préavis fixé par convention ou décret",
+      "reference": "Code du travail, loi n° 2003-044, art. 18, 19, 28, 75, 76, 86 et 89",
+      "url": "https://faolex.fao.org/docs/pdf/mad208109.pdf"
     }
   ]
 }

@@ -5,18 +5,31 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && pnpm build:server && node scripts/postbuild.mjs",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run src",
+    "build:server": "vite build --config vite.server.config.ts",
+    "dev:api": "pnpm build:server && node --env-file-if-exists=.env server/index.mjs",
+    "start": "node --env-file-if-exists=.env server/index.mjs",
+    "test:api": "pnpm build:server && node --test server/*.test.mjs",
+    "check:sources": "node scripts/check-sources.mjs",
+    "test:e2e": "playwright test",
+    "check:ai": "node --env-file-if-exists=.env scripts/check-ai.mjs",
+    "compare:ai": "pnpm build:server && node --env-file-if-exists=.env scripts/compare-ai.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.3.0",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",

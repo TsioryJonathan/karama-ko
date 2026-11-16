@@ -1,147 +1,345 @@
-import { useEffect, useMemo, useState } from 'react'
-import { InteractiveGrid } from './components/InteractiveGrid'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { GrainField } from './components/GrainField'
+import { ScaleNotice } from './components/ScaleNotice'
+import { LoadingScreen, NotFoundScreen } from './components/Screens'
+import { DependantsField, SelectField } from './workspace/Fields'
+import { Assistant } from './workspace/Assistant'
+import { Menu, ToolBar } from './workspace/ToolBar'
+import { ActionIcon, ToolIcon } from './workspace/tools'
 import { AmountField } from './components/AmountField'
-import { Stepper } from './components/Controls'
 import { ResultCard } from './components/ResultCard'
 import { Sources } from './components/Sources'
-import { SCALE_2026, compute } from './engine/compute'
+import { SCALE, compute } from './engine/compute'
 import { inverse } from './engine/inverse'
+import { payslip, hasExtras } from './engine/pay'
+import { ExtrasPanel } from './components/ExtrasPanel'
 import { formatAr, formatNumber } from './lib/format'
-import { MAX_DEPENDANTS, loadInitial, persist, type Mode, type State } from './lib/state'
+import { PANELS, type Panel } from './workspace/state'
+import { TOOLS } from './workspace/tools'
+import { LEGAL_PAGES } from './workspace/legal-pages'
+import { isLegalId } from './workspace/legal-pages'
+import { SiteFooter } from './workspace/SiteFooter'
+import { loadInitial, persist, type Mode, type State } from './lib/state'
 
 const MAX_AMOUNT = 1_000_000_000
 /** Focusing the field on a phone would pop the keyboard over the page. */
 const DESKTOP = matchMedia('(min-width: 960px)').matches
 const QUICK_AMOUNTS = [500_000, 1_000_000, 2_000_000, 5_000_000]
 const MODES: { id: Mode; name: string }[] = [
-  { id: 'gross', name: 'Du brut au net' },
-  { id: 'net', name: 'Du net au brut' },
+  { id: 'gross', name: 'Mon salaire brut' },
+  { id: 'net', name: 'Le net que je souhaite' },
 ]
 
+const CALC_QUESTIONS = [
+  'Pourquoi mon net est-il inférieur à mon brut ?',
+  'Comment l’IRSA est-il calculé pour ce salaire ?',
+  'Que coûte ce salaire à l’employeur ?',
+]
+
+const Studio = lazy(() => import('./workspace/Studio'))
+const Home = lazy(() => import('./workspace/Home'))
+const Widget = lazy(() => import('./workspace/Widget'))
+const Legal = lazy(() => import('./workspace/Legal'))
+
+/** Anchors inside a page: following one must not change which page is shown. */
+const IN_PAGE = new Set(['#resultat', '#atelier-content'])
+
+function isKnown(hash: string, search: URLSearchParams) {
+  const parts = hash.replace(/^#/, '').split('/')
+  if (location.pathname !== '/' && location.pathname !== '/index.html') return false
+  if (search.get('embed') === '1' || search.has('brut') || search.has('net')) return true
+  if (['', 'outils', 'calculateur', 'baremes'].includes(parts[0])) return parts.length === 1
+  if (isLegalId(parts[0])) return parts.length === 1
+  return parts[0] === 'atelier' && (parts.length === 1 || PANELS.some((p) => p.id === parts[1]))
+}
+
+/** Title, description and indexing of the page being shown: the address of a tool is a hash, so this is what tabs, history and shares see. */
+function routeMeta(hash: string, known: boolean, search: URLSearchParams) {
+  const suffix = ' · Karama-Ko'
+  const parts = hash.replace(/^#/, '').split('/')
+  if (!known) return { title: 'Page introuvable' + suffix, noindex: true }
+  if (search.get('embed') === '1') return { title: 'Calculateur de salaire intégré' + suffix, noindex: true }
+  if (parts[0] === 'atelier') {
+    const tool = TOOLS.find((t) => t.id === parts[1]) ?? TOOLS.find((t) => t.id === 'comparer')!
+    return { title: tool.title + suffix, description: `${tool.text} ${tool.output}.` }
+  }
+  const legal = LEGAL_PAGES.find((page) => page.id === parts[0])
+  if (legal) return { title: legal.title + suffix, noindex: false }
+  if (parts[0] === 'baremes') return { title: 'Barèmes et sources : IRSA, CNaPS, OSTIE' + suffix }
+  if (hash === '#calculateur' || search.has('brut') || search.has('net'))
+    return { title: 'Calculer mon salaire net à Madagascar' + suffix, description: 'Du salaire brut au net, ou du net au brut : IRSA, CNaPS et OSTIE au barème en vigueur, avec primes, heures supplémentaires et avantages.' }
+  return null
+}
+
+const DEFAULTS = {
+  title: document.title,
+  description: document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content ?? '',
+}
+
 export function App() {
+  const [hash, setHash] = useState(location.hash)
+  useEffect(() => {
+    const updateHash = () => {
+      if (!IN_PAGE.has(location.hash)) setHash(location.hash)
+    }
+    window.addEventListener('hashchange', updateHash)
+    return () => window.removeEventListener('hashchange', updateHash)
+  }, [])
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (hash === '#baremes' || hash === '#outils') document.getElementById(hash.slice(1))?.scrollIntoView()
+      else window.scrollTo(0, 0)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hash])
+  const search = new URLSearchParams(location.search)
+  const parts = hash.replace(/^#/, '').split('/')
+  const known = isKnown(hash, search)
+  useEffect(() => {
+    const meta = routeMeta(hash, known, search)
+    document.title = meta?.title ?? DEFAULTS.title
+    const set = (name: string, content: string) => document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)?.setAttribute('content', content)
+    set('description', meta?.description ?? DEFAULTS.description)
+    set('robots', meta?.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large')
+    document.documentElement.toggleAttribute('data-og', search.has('og') && !meta)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash, known])
+  const panel = PANELS.some((p) => p.id === parts[1]) ? (parts[1] as Panel) : 'comparer'
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      {!known ? (
+        <NotFoundScreen />
+      ) : search.get('embed') === '1' ? (
+        <Widget />
+      ) : parts[0] === 'atelier' ? (
+        <Studio panel={panel} key={parts[2] || 'draft'} />
+      ) : isLegalId(parts[0]) ? (
+        <Legal page={parts[0]} />
+      ) : hash === '#calculateur' || hash === '#baremes' || search.has('brut') || search.has('net') ? (
+        <Calculator />
+      ) : (
+        <Home />
+      )}
+    </Suspense>
+  )
+}
+
+function Calculator() {
   const [state, setState] = useState<State>(loadInitial)
   const update = (patch: Partial<State>) => setState((s) => ({ ...s, ...patch }))
   useEffect(() => persist(state), [state])
+  const [copied, setCopied] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)
+  const [ask, setAsk] = useState<{ id: number; question: string } | undefined>()
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(false), 3000)
+    return () => clearTimeout(timer)
+  }, [copied])
 
   const outOfRange = state.amount !== null && state.amount > MAX_AMOUNT
+  const pay = useMemo(() => {
+    if (!state.amount || outOfRange || state.mode === 'net') return null
+    return payslip(state.amount, state.dependants, state.extras)
+  }, [state.amount, state.mode, state.dependants, state.extras, outOfRange])
   const result = useMemo(() => {
     if (!state.amount || outOfRange) return null
-    const gross = state.mode === 'net' ? inverse(state.amount, state.dependants) : state.amount
-    return compute(gross, state.dependants)
-  }, [state.amount, state.mode, state.dependants, outOfRange])
+    if (state.mode === 'gross') return pay?.result ?? null
+    return compute(inverse(state.amount, state.dependants), state.dependants)
+  }, [state.amount, state.mode, state.dependants, outOfRange, pay])
 
   let hint: string | undefined
   const tone = 'warning' as const
   if (outOfRange) hint = `Montant trop élevé : le simulateur s’arrête à ${formatAr(MAX_AMOUNT)}.`
-  else if (result && result.gross < SCALE_2026.minimumWage)
-    hint = `Sous le salaire minimum d’embauche à temps plein (${formatAr(SCALE_2026.minimumWage)}).`
+  else if (result && result.gross < SCALE.minimumWage)
+    hint = `Sous le salaire minimum d’embauche à temps plein (${formatAr(SCALE.minimumWage)}).`
 
   return (
     <>
-      <div
-        className="calculator-shell flex min-h-dvh flex-col print:min-h-0"
-        onPointerMove={(event) => {
-          if (event.pointerType !== 'mouse' || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-          const shell = event.currentTarget
-          const bounds = shell.getBoundingClientRect()
-          shell.style.setProperty('--pointer-x', `${((event.clientX - bounds.left) / bounds.width - 0.5) * 24}px`)
-          shell.style.setProperty('--pointer-y', `${((event.clientY - bounds.top) / bounds.height - 0.5) * 24}px`)
-        }}
-        onPointerLeave={(event) => {
-          event.currentTarget.style.removeProperty('--pointer-x')
-          event.currentTarget.style.removeProperty('--pointer-y')
-        }}
-      >
-        <InteractiveGrid />
+      <div className="calculator-shell flex min-h-dvh flex-col print:min-h-0">
+        <GrainField fixed />
         <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-2 z-20">
           Aller au résultat
         </a>
-        <header className="mx-auto flex w-full max-w-page shrink-0 items-center justify-between px-6 pt-6 lg:px-10 lg:pt-8">
-          <a href="./" className="font-display text-28 font-extrabold">
-            Karama
-          </a>
-          <nav className="flex items-center gap-1 print:hidden" aria-label="Navigation">
-            <a href="#baremes" className="flex min-h-11 items-center rounded px-3 text-14 font-medium hover:bg-raised">
-              Barèmes<span className="max-sm:hidden">&nbsp;et sources</span>
-            </a>
-            <ThemeToggle />
-          </nav>
-        </header>
+        <ToolBar current="calculer">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            aria-label="Poser une question"
+            aria-expanded={aiOpen}
+            onClick={() => setAiOpen(!aiOpen)}
+          >
+            <ActionIcon id="chat" />
+            <span>Poser une question</span>
+          </button>
+          <Menu label="Partager ce calcul" icon={<ActionIcon id="send" />} align="end" tone="outline">
+            <button
+              className="menu-action"
+              data-close
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(location.href)
+                  setCopied(true)
+                } catch {
+                  /* clipboard refused: the link stays in the address bar */
+                }
+              }}
+            >
+              <ActionIcon id="link" />
+              <span>
+                <strong>Copier le lien</strong>
+                <small>Il rouvre ce calcul avec les mêmes montants.</small>
+              </span>
+            </button>
+            {typeof navigator.share === 'function' && (
+              <button
+                className="menu-action"
+                data-close
+                onClick={() =>
+                  navigator
+                    .share({ title: 'Karama-Ko : mon calcul de salaire', url: location.href })
+                    .catch(() => {})
+                }
+              >
+                <ActionIcon id="send" />
+                <span>
+                  <strong>Envoyer à quelqu’un</strong>
+                  <small>Via vos applications de messagerie.</small>
+                </span>
+              </button>
+            )}
+            <button className="menu-action" data-close onClick={() => print()}>
+              <ActionIcon id="print" />
+              <span>
+                <strong>Imprimer ou enregistrer en PDF</strong>
+                <small>Une page propre avec le détail du calcul.</small>
+              </span>
+            </button>
+          </Menu>
+        </ToolBar>
 
-        <main className="mx-auto grid w-full max-w-page grow items-center gap-x-16 gap-y-10 px-6 pt-8 pb-28 lg:grid-cols-[340px_1fr] lg:px-10 lg:py-6">
-          <form className="print:hidden" onSubmit={(e) => e.preventDefault()}>
-            <h1 className="font-display text-28 font-extrabold leading-[1.1]">Calculez votre salaire net</h1>
-            <p className="mt-3 text-muted">Madagascar, secteur privé. Barème d’octobre 2026.</p>
-
-            <div className="mt-8 space-y-8 lg:mt-10">
-              <div role="group" aria-label="Sens du calcul" className="grid grid-cols-2 gap-1 rounded bg-raised p-1">
-                {MODES.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    aria-pressed={state.mode === m.id}
-                    onClick={() => update({ mode: m.id })}
-                    className={`min-h-10 rounded-[4px] px-2 text-14 font-medium transition-colors duration-150 ${state.mode === m.id ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-ink'}`}
-                  >
-                    {m.name}
-                  </button>
-                ))}
-              </div>
-
-              <div>
+        <main className="studio-main w-full grow">
+          <div className="studio-title">
+            <span className="tool-icon">
+              <ToolIcon id="calculer" />
+            </span>
+            <div>
+              <h1>Calculer mon salaire</h1>
+              <p>Madagascar, secteur privé. Barème d’octobre 2026.</p>
+            </div>
+          </div>
+          <ScaleNotice />
+          <div className="studio-work">
+            <form className="pane-inputs print:hidden" onSubmit={(e) => e.preventDefault()} aria-labelledby="inputs-title">
+              <h2 id="inputs-title">Votre salaire</h2>
+              <p className="pane-hint">
+                Indiquez un montant mensuel, ou partez d’un exemple. Le résultat s’affiche à côté.
+              </p>
+<div className="pane-fields" data-calc>
+              <SelectField
+                label="Je pars de"
+                value={state.mode}
+                onChange={(mode) => update({ mode: mode as Mode })}
+                options={MODES.map((m) => ({ value: m.id, label: m.name }))}
+              />
+              <div className="pane-wide">
                 <AmountField
-                  label={state.mode === 'net' ? 'Votre salaire net souhaité, par mois' : 'Votre salaire brut, par mois'}
+                  label={
+                    state.mode === 'net' ? 'Net souhaité, par mois (le résultat est le brut à demander)' : 'Salaire brut, par mois'
+                  }
                   value={state.amount}
                   onChange={(amount) => update({ amount })}
                   hint={hint}
                   tone={tone}
-                  autoFocus={DESKTOP && state.amount === null}
+                  autoFocus={DESKTOP && state.amount === null && location.hash !== '#baremes'}
                 />
                 <p id="quick-amounts" className="text-14 text-muted">
-                  Ou choisissez un exemple
+                  Ou partez d’un exemple
                 </p>
-                <div className="mt-2 grid grid-cols-4 gap-2" role="group" aria-labelledby="quick-amounts">
+                <div className="quick-amounts" role="group" aria-labelledby="quick-amounts">
                   {QUICK_AMOUNTS.map((amount) => (
                     <button
                       key={amount}
                       type="button"
                       aria-pressed={state.amount === amount}
                       onClick={() => update({ amount })}
-                      className={`figure min-h-11 rounded px-1 text-14 font-medium transition-colors duration-150 ${state.amount === amount ? 'bg-accent text-on-accent' : 'bg-raised hover:bg-control/45'}`}
                     >
                       {formatNumber(amount)}
                     </button>
                   ))}
                 </div>
               </div>
-
-              <Stepper
-                label="Personnes à charge"
-                value={state.dependants}
-                min={0}
-                max={MAX_DEPENDANTS}
-                decrementLabel="Une personne de moins"
-                incrementLabel="Une personne de plus"
-                onChange={(dependants) => update({ dependants })}
+              <div>
+                <DependantsField value={state.dependants} onChange={(dependants) => update({ dependants })} />
+              </div>
+              <ExtrasPanel
+                extras={state.extras}
+                disabled={state.mode === 'net'}
+                onChange={(extras) => update({ extras })}
               />
-            </div>
-          </form>
+</div>
+            </form>
 
-          <div>
-            {result && (
-              <p className="mb-4 hidden print:block">
-                Karama, simulation du {new Date().toLocaleDateString('fr-FR')} : brut de {formatAr(result.gross)},{' '}
-                {result.dependants} personne{result.dependants > 1 ? 's' : ''} à charge. Barème {SCALE_2026.year}, SME
-                de {formatAr(SCALE_2026.minimumWage)}. Estimation, hors primes, heures supplémentaires et avantages en
-                nature.
-              </p>
-            )}
-            <ResultCard result={result} mode={state.mode} />
+            <div className="pane-result">
+              <h2 className="sr-only">Votre résultat</h2>
+              {result && (
+                <p className="mb-4 hidden print:block">
+                  Karama-Ko, simulation du {new Date().toLocaleDateString('fr-FR')} : brut de{' '}
+                  {formatAr(result.gross)}, {result.dependants} personne{result.dependants > 1 ? 's' : ''} à
+                  charge. Barème {SCALE.year}, SME de {formatAr(SCALE.minimumWage)}. Estimation, hors
+                  primes, heures supplémentaires et avantages en nature.
+                </p>
+              )}
+              <ResultCard result={result} mode={state.mode} pay={hasExtras(state.extras) ? pay : null} />
+              {result && (
+                <p className="calc-next print:hidden">
+                  <button
+                    type="button"
+                    className="verdict-ask"
+                    onClick={() => {
+                      setAsk({ id: Date.now(), question: CALC_QUESTIONS[0] })
+                      setAiOpen(true)
+                    }}
+                  >
+                    <ActionIcon id="chat" />
+                    Pourquoi ce résultat ?
+                  </button>
+                  {' · '}Et ensuite ?{' '}
+                  <a href={`${location.pathname}#atelier/comparer`}>Comparer avec une autre offre</a>
+                  {' · '}
+                  <a href={`${location.pathname}#atelier/negocier`}>Préparer une négociation</a>
+                </p>
+              )}
+            </div>
           </div>
         </main>
       </div>
+      <Assistant
+        scenarios={[
+          {
+            id: 'calc',
+            name: hasExtras(state.extras)
+              ? 'Salaire brut avec primes et heures supplémentaires (sans leurs exonérations)'
+              : state.mode === 'net'
+                ? 'Brut à demander'
+                : 'Mon salaire',
+            gross: result?.gross ?? 0,
+            dependants: state.dependants,
+          },
+        ]}
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        tool="calculer"
+        toolTitle="Calculer mon salaire"
+        suggestions={CALC_QUESTIONS}
+        ask={ask}
+      />
+      <p role="status" className="studio-toast print:hidden" data-on={copied ? '' : undefined}>
+        Lien copié.
+      </p>
 
       <Sources />
+      <SiteFooter />
 
       {result && (
         <div
@@ -156,30 +354,3 @@ export function App() {
   )
 }
 
-function ThemeToggle() {
-  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark')
-  return (
-    <button
-      type="button"
-      aria-pressed={dark}
-      aria-label="Thème sombre"
-      title={dark ? 'Passer au thème clair' : 'Passer au thème sombre'}
-      className="flex h-11 w-11 items-center justify-center rounded hover:bg-raised"
-      onClick={() => {
-        const next = !dark
-        document.documentElement.dataset.theme = next ? 'dark' : 'light'
-        try {
-          localStorage.setItem('karama:theme', next ? 'dark' : 'light')
-        } catch {
-          /* storage unavailable */
-        }
-        setDark(next)
-      }}
-    >
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-        <circle cx="9" cy="9" r="7.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M9 1.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor" />
-      </svg>
-    </button>
-  )
-}
