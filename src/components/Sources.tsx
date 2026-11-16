@@ -11,14 +11,14 @@ export function Sources() {
   const s = SCALE_2026
   let from = 0
   return (
-    <section id="baremes" className="border-t border-line bg-surface print:hidden">
-      <div className="mx-auto grid max-w-page gap-x-16 gap-y-8 px-6 py-16 lg:grid-cols-[5fr_6fr] lg:py-24">
+    <section id="baremes" className="print:hidden">
+      <div className="mx-auto grid max-w-page gap-x-16 gap-y-8 px-6 lg:px-10 pt-8 pb-28 lg:grid-cols-[340px_1fr] lg:pt-16 lg:pb-32">
       <div>
-        <h2 className="text-32">Barèmes et sources</h2>
+        <h2 className="text-28">Barèmes et sources</h2>
         <p className="mt-4 text-muted">
           Barème {s.year}, en vigueur depuis le {date(s.effectiveFrom)}. Vérifié le {date(s.updatedAt)}.
         </p>
-        <p className="mt-4 border-l-2 border-warning pl-4 text-16 text-warning">
+        <p className="mt-4 rounded bg-raised p-4 text-16">
           Le résultat est une estimation. Il ne tient pas compte des primes, des heures supplémentaires ni des avantages
           en nature, et ne remplace pas une fiche de paie.
         </p>
@@ -27,9 +27,10 @@ export function Sources() {
         </p>
       </div>
 
-      <div className="space-y-10">
-        <table className="w-full border-t border-ink text-16">
-          <caption className="label pb-2 text-left">IRSA, base imposable mensuelle</caption>
+      <div className="space-y-3">
+        <div className="rounded-lg bg-surface p-6 lg:p-8">
+        <table className="w-full text-16">
+          <caption className="pb-3 text-left font-semibold">IRSA, base imposable mensuelle</caption>
           <tbody>
             {s.irsa.brackets.map((b) => {
               const low = from
@@ -59,9 +60,11 @@ export function Sources() {
             </tr>
           </tbody>
         </table>
+        </div>
 
-        <table className="w-full border-t border-ink text-16">
-          <caption className="label pb-2 text-left">
+        <div className="rounded-lg bg-surface p-6 lg:p-8">
+        <table className="w-full text-16">
+          <caption className="pb-3 text-left font-semibold">
             Cotisations, plafonnées à {formatAr(contributionCeiling(s))} de salaire (8 × SME de{' '}
             {formatAr(s.minimumWage)})
           </caption>
@@ -90,10 +93,11 @@ export function Sources() {
             ))}
           </tbody>
         </table>
+        </div>
 
-        <div>
-          <h3 className="label">Sources</h3>
-          <ul className="mt-2 border-t border-ink text-16">
+        <div className="rounded-lg bg-surface p-6 lg:p-8">
+          <h3 className="text-16 font-semibold">Sources</h3>
+          <ul className="mt-3 text-16">
             {s.sources.map((src) => (
               <li key={src.topic} className="border-b border-line py-3">
                 <span className="font-medium">{src.topic}</span>

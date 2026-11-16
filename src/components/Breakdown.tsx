@@ -64,16 +64,16 @@ export function Breakdown({ result: r }: { result: Result }) {
 
   return (
     <section>
-      <h3 className="font-ui text-16">
+      <h3 className="text-16">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen(!open)}
-          className="flex min-h-11 w-full items-center justify-between gap-4 text-left font-semibold print:hidden"
+          className="flex min-h-11 w-full items-center justify-between gap-4 rounded bg-raised px-4 text-left font-medium print:hidden"
         >
           Détail du calcul
-          <span className="text-16 font-normal underline underline-offset-4">{open ? 'Masquer' : 'Afficher'}</span>
+          <span className="text-14 text-muted">{open ? 'Masquer' : 'Afficher'}</span>
         </button>
         <span className="hidden min-h-11 items-center font-medium print:flex">Détail du calcul</span>
       </h3>
@@ -83,27 +83,31 @@ export function Breakdown({ result: r }: { result: Result }) {
         className={`grid transition-[grid-template-rows] duration-300 ease-out print:grid-rows-[1fr] ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
       >
         <div className={`overflow-hidden print:visible ${open ? '' : 'invisible'}`}>
-          <div className="flex items-baseline justify-between gap-4 border-t border-line py-3">
-            <span className="label">Salaire brut</span>
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
+          <div>
+          <div className="mt-2 flex items-baseline justify-between gap-4 py-3">
+            <span className="font-medium">Salaire brut</span>
             <span className="mono text-16">{formatNumber(r.gross)}</span>
           </div>
           <ol>
             {steps.map((s, i) => (
               <li key={s.label} className="flex items-baseline gap-4 border-t border-line py-3">
-                <span className="mono w-5 shrink-0 text-14 text-muted">{i + 1}</span>
+                <span className="figure w-5 shrink-0 text-14 text-muted">{i + 1}</span>
                 <span className="min-w-0 grow">
                   <span className="block font-medium">{s.label}</span>
                   {s.note && <span className="block text-14 text-muted">{s.note}</span>}
                 </span>
                 <span
-                  className={`mono text-16 font-medium ${s.tone === 'net' ? 'text-net' : ''}`}
+                  className={`mono text-16 font-medium ${s.tone === 'net' ? 'font-semibold' : ''}`}
                 >
                   {s.value}
                 </span>
               </li>
             ))}
           </ol>
+          </div>
           <LiveScale result={r} />
+          </div>
         </div>
       </div>
     </section>
@@ -113,8 +117,8 @@ export function Breakdown({ result: r }: { result: Result }) {
 /** Bracket table where reached brackets fill up. */
 function LiveScale({ result: r }: { result: Result }) {
   return (
-    <table className="mt-6 mb-2 w-full border-t border-ink text-16">
-      <caption className="label pb-2 text-left">Barème IRSA, base de {formatAr(r.taxableBase)}</caption>
+    <table className="mt-5 mb-2 w-full self-start text-16">
+      <caption className="pb-2 text-left font-medium">Barème IRSA, base de {formatAr(r.taxableBase)}</caption>
       <thead>
         <tr className="border-b border-line text-left text-muted">
           <th scope="col" className="py-2 font-normal">
@@ -140,7 +144,7 @@ function LiveScale({ result: r }: { result: Result }) {
                     ? `Plus de ${formatNumber(b.from)}`
                     : `${formatNumber(b.from === 0 ? 0 : b.from + 1)} à ${formatNumber(b.upTo)}`}
                 </span>
-                <span className="mt-2 block h-0.5 bg-line" aria-hidden="true">
+                <span className="mt-2 block h-1 bg-raised" aria-hidden="true">
                   <span
                     className="block h-full origin-left bg-ink transition-transform duration-300 ease-out"
                     style={{ transform: `scaleX(${fill})` }}

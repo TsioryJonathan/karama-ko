@@ -20,26 +20,26 @@ export function Stepper({
   onChange: (v: number) => void
 }) {
   const button =
-    'h-11 w-11 text-20 transition-colors duration-150 hover:bg-ink hover:text-bg disabled:cursor-not-allowed disabled:text-muted/50 disabled:hover:bg-transparent disabled:hover:text-muted/50'
+    'h-11 w-11 rounded bg-raised text-20 transition-opacity duration-150 hover:opacity-80 disabled:cursor-not-allowed disabled:text-control/45 disabled:hover:opacity-100'
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-16 font-medium">{label}</span>
-      <div role="group" aria-label={label} className="flex items-center rounded border border-muted bg-surface">
+      <span className="label">{label}</span>
+      <div role="group" aria-label={label} className="flex items-center gap-1">
         <button
           type="button"
-          className={`${button} rounded-l-[9px]`}
+          className={button}
           aria-label={decrementLabel}
           disabled={value <= min}
           onClick={() => onChange(value - 1)}
         >
           {MINUS}
         </button>
-        <output className="figure w-11 border-x border-muted text-center text-16 leading-[44px] font-semibold" aria-live="polite">
+        <output className="figure w-10 text-center text-20 leading-[44px] font-semibold" aria-live="polite">
           {value}
         </output>
         <button
           type="button"
-          className={`${button} rounded-r-[9px]`}
+          className={button}
           aria-label={incrementLabel}
           disabled={value >= max}
           onClick={() => onChange(value + 1)}
@@ -65,7 +65,7 @@ export function Tabs<T extends string>({
 }) {
   const base = useId()
   return (
-    <div role="tablist" aria-label={label} className="inline-flex gap-1 rounded border border-line p-1">
+    <div role="tablist" aria-label={label} className="inline-flex gap-1 rounded bg-raised p-1">
       {tabs.map((tab, i) => (
         <button
           key={tab.id}
@@ -82,7 +82,7 @@ export function Tabs<T extends string>({
             onChange(next.id)
             document.getElementById(`${base}-${next.id}`)?.focus()
           }}
-          className={`min-h-9 rounded-[7px] px-3 text-16 font-medium transition-colors duration-150 ${tab.id === active ? 'bg-ink text-bg' : 'hover:bg-line'}`}
+          className={`min-h-9 rounded-[4px] px-3 text-14 font-medium transition-colors duration-150 ${tab.id === active ? 'bg-surface' : 'text-muted hover:text-ink'}`}
         >
           {tab.name}
         </button>

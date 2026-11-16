@@ -36,7 +36,7 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral' }: 
       <label htmlFor={id} className="label block">
         {label}
       </label>
-      <div className="mt-2 flex items-baseline gap-3 rounded border border-muted bg-surface px-4 focus-within:border-ink focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
+      <div className="mt-2 flex items-baseline gap-3 rounded border border-control bg-surface px-4 focus-within:border-ink focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
         <input
           ref={ref}
           id={id}
@@ -53,13 +53,13 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral' }: 
             caretDigits.current = before.replace(/\D/g, '').length
             onChange(digits === '' ? null : Number(digits))
           }}
-          className="figure h-16 w-full min-w-0 bg-transparent text-32 font-semibold outline-none placeholder:text-muted/50 lg:h-18 lg:text-[40px]"
+          className="figure h-16 w-full min-w-0 bg-transparent text-28 font-semibold outline-none placeholder:text-control/45 lg:h-18 lg:text-40"
         />
-        <span className="text-20 font-medium text-muted">Ar</span>
+        <span className="text-16 font-medium text-muted">Ar</span>
       </div>
       <p
         id={`${id}-hint`}
-        className={`mt-2 min-h-6 text-16 ${tone === 'warning' ? 'text-warning' : 'text-muted'}`}
+        className={`mt-2 min-h-[21px] text-14 ${tone === 'warning' ? 'text-warning' : 'text-muted'}`}
         aria-live="polite"
       >
         {hint}
