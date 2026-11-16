@@ -64,16 +64,16 @@ export function Breakdown({ result: r }: { result: Result }) {
 
   return (
     <section className="border-b border-line">
-      <h2 className="font-ui text-16 tracking-normal">
+      <h2 className="text-20 tracking-normal">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen(!open)}
-          className="flex min-h-14 w-full items-center justify-between gap-4 text-left font-medium print:hidden"
+          className="flex min-h-14 w-full items-center justify-between gap-4 text-left font-semibold print:hidden"
         >
           Détail du calcul
-          <span className="text-14 font-normal text-muted">{open ? 'Replier' : 'Déplier'}</span>
+          <span className="text-16 font-normal underline underline-offset-4">{open ? 'Masquer' : 'Afficher'}</span>
         </button>
         <span className="hidden min-h-14 items-center font-medium print:flex">Détail du calcul</span>
       </h2>
@@ -85,18 +85,18 @@ export function Breakdown({ result: r }: { result: Result }) {
         <div className={`overflow-hidden print:visible ${open ? '' : 'invisible'}`}>
           <div className="flex items-baseline justify-between gap-4 border-t border-line py-3">
             <span className="label">Salaire brut</span>
-            <span className="mono text-14">{formatNumber(r.gross)}</span>
+            <span className="mono text-16">{formatNumber(r.gross)}</span>
           </div>
           <ol>
             {steps.map((s, i) => (
               <li key={s.label} className="flex items-baseline gap-4 border-t border-line py-3">
-                <span className="mono w-5 shrink-0 text-12 text-muted">{i + 1}</span>
+                <span className="mono w-5 shrink-0 text-14 text-muted">{i + 1}</span>
                 <span className="min-w-0 grow">
                   <span className="block font-medium">{s.label}</span>
                   {s.note && <span className="block text-14 text-muted">{s.note}</span>}
                 </span>
                 <span
-                  className={`mono text-14 ${s.tone === 'deduction' ? 'text-deduction' : s.tone === 'net' ? 'text-net' : ''}`}
+                  className={`mono text-16 font-medium ${s.tone === 'deduction' ? 'text-deduction' : s.tone === 'net' ? 'text-net' : ''}`}
                 >
                   {s.value}
                 </span>
@@ -113,7 +113,7 @@ export function Breakdown({ result: r }: { result: Result }) {
 /** Bracket table where reached brackets fill up. */
 function LiveScale({ result: r }: { result: Result }) {
   return (
-    <table className="mt-6 mb-8 w-full border-t border-ink text-14">
+    <table className="mt-6 mb-8 w-full border-t border-ink text-16">
       <caption className="label pb-2 text-left">Barème IRSA, base de {formatAr(r.taxableBase)}</caption>
       <thead>
         <tr className="border-b border-line text-left text-muted">
@@ -135,7 +135,7 @@ function LiveScale({ result: r }: { result: Result }) {
           return (
             <tr key={b.from} className={`border-b border-line ${b.reached ? '' : 'text-muted'}`}>
               <th scope="row" className="py-2 text-left font-normal">
-                <span className="mono block text-14">
+                <span className="mono block text-16">
                   {b.upTo === null
                     ? `Plus de ${formatNumber(b.from)}`
                     : `${formatNumber(b.from === 0 ? 0 : b.from + 1)} à ${formatNumber(b.upTo)}`}

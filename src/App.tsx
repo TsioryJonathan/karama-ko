@@ -37,14 +37,17 @@ export function App() {
 
   return (
     <div className="mx-auto max-w-page px-6">
+      <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-2 z-10">
+        Aller au résultat
+      </a>
       <header className="flex h-16 items-center justify-between border-b border-line">
-        <a href="./" className="font-display text-20 font-semibold tracking-[-0.02em]">
+        <a href="./" className="text-20 font-semibold tracking-[-0.01em]">
           Karama
         </a>
         <nav className="flex items-center gap-6 print:hidden">
           <a
             href="#baremes"
-            className="flex min-h-11 items-center text-14 font-medium text-muted transition-colors duration-150 hover:text-ink"
+            className="flex min-h-11 items-center text-16 text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
           >
             Barèmes<span className="max-sm:hidden">&nbsp;et sources</span>
           </a>
@@ -52,13 +55,12 @@ export function App() {
         </nav>
       </header>
 
-      <main className="grid gap-x-6 gap-y-12 pt-12 pb-24 lg:grid-cols-12 lg:py-24">
+      <main className="grid gap-x-6 gap-y-10 pt-8 pb-24 lg:grid-cols-12 lg:py-16">
         <div className="lg:col-span-4">
-          <div className="lg:sticky lg:top-12">
-            <h1 className="text-32 lg:text-48">Du brut au net, ligne par ligne.</h1>
-            <p className="mt-4 max-w-[38ch] text-muted">
-              Salaire mensuel du secteur privé non agricole à Madagascar, selon le barème en vigueur depuis le 1
-              <sup>er</sup> octobre 2026.
+          <div className="lg:sticky lg:top-8">
+            <h1 className="text-24 lg:text-32">Calculez votre salaire net</h1>
+            <p className="mt-2 text-muted">
+              Madagascar, secteur privé. Barème du 1<sup>er</sup> octobre 2026.
             </p>
 
             {result && (
@@ -68,7 +70,7 @@ export function App() {
               </p>
             )}
 
-            <form className="mt-12 space-y-6 print:hidden" onSubmit={(e) => e.preventDefault()}>
+            <form className="mt-8 space-y-4 print:hidden" onSubmit={(e) => e.preventDefault()}>
               <AmountField
                 label={state.mode === 'net' ? 'Salaire net souhaité, par mois' : 'Salaire brut mensuel'}
                 value={state.amount}
@@ -100,7 +102,7 @@ export function App() {
           </div>
         </div>
 
-        <div className="space-y-6 lg:col-span-8">
+        <div id="resultat" className="space-y-6 lg:col-span-8">
           <div className="print:hidden">
             <Tabs<View>
               label="Point de vue"
@@ -128,9 +130,9 @@ export function App() {
       </p>
 
       {result && (
-        <div className="fixed inset-x-0 bottom-0 flex items-baseline justify-between border-t border-line bg-surface px-6 py-3 lg:hidden print:hidden">
-          <span className="label">Salaire net</span>
-          <span className="figure font-display text-20 font-medium text-net">{formatAr(result.net)}</span>
+        <div className="fixed inset-x-0 bottom-0 flex items-baseline justify-between border-t border-line bg-surface px-6 py-3 lg:hidden print:hidden" aria-hidden="true">
+          <span className="text-16 font-medium">Salaire net</span>
+          <span className="figure text-20 font-semibold text-net">{formatAr(result.net)}</span>
         </div>
       )}
     </div>
@@ -142,7 +144,7 @@ function ThemeToggle() {
   return (
     <button
       type="button"
-      className="min-h-11 text-14 font-medium text-muted transition-colors duration-150 hover:text-ink"
+      className="min-h-11 text-16 text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
       aria-pressed={dark}
       onClick={() => {
         const next = !dark

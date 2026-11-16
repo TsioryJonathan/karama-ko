@@ -69,4 +69,4 @@ Adding a year means adding a JSON file in `src/scales/`; the engine takes the sc
 
 ## Stack
 
-Vite, React, TypeScript, Tailwind CSS v4, Vitest, vite-plugin-pwa. Fonts: Clash Display and Cabinet Grotesk (Fontshare), Geist Mono, self-hosted as `woff2`.
+Vite, React, TypeScript, Tailwind CSS v4, Vitest, vite-plugin-pwa. Font: Switzer (Fontshare), self-hosted as `woff2`.

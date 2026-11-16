@@ -20,11 +20,11 @@ export function Stepper({
   onChange: (v: number) => void
 }) {
   const button =
-    'h-11 w-11 text-20 transition-colors duration-150 hover:bg-ink hover:text-bg disabled:text-line disabled:hover:bg-transparent disabled:hover:text-line disabled:cursor-not-allowed'
+    'h-11 w-11 text-20 transition-colors duration-150 hover:bg-ink hover:text-bg disabled:cursor-not-allowed disabled:text-muted/50 disabled:hover:bg-transparent disabled:hover:text-muted/50'
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="label">{label}</span>
-      <div role="group" aria-label={label} className="flex items-center rounded border border-line bg-surface">
+      <span className="text-16 font-medium">{label}</span>
+      <div role="group" aria-label={label} className="flex items-center rounded border border-ink bg-surface">
         <button
           type="button"
           className={`${button} rounded-l-[5px]`}
@@ -34,7 +34,7 @@ export function Stepper({
         >
           {MINUS}
         </button>
-        <output className="figure w-11 border-x border-line text-center text-16 leading-[44px] font-medium" aria-live="polite">
+        <output className="figure w-11 border-x border-ink text-center text-16 leading-[44px] font-semibold" aria-live="polite">
           {value}
         </output>
         <button
@@ -61,12 +61,12 @@ export function Switch({ label, checked, onChange }: { label: string; checked: b
       onClick={() => onChange(!checked)}
       className="flex min-h-11 w-full items-center justify-between gap-4 text-left"
     >
-      <span className="label">{label}</span>
+      <span className="text-16 font-medium">{label}</span>
       <span
-        className={`relative h-6 w-11 shrink-0 rounded border transition-colors duration-150 ${checked ? 'border-ink bg-ink' : 'border-line bg-surface'}`}
+        className={`relative h-6 w-11 shrink-0 rounded border transition-colors duration-150 ${checked ? 'border-ink bg-ink' : 'border-ink bg-surface'}`}
       >
         <span
-          className={`absolute top-[3px] left-[3px] h-4 w-4 rounded-[3px] transition-transform duration-150 ${checked ? 'translate-x-5 bg-bg' : 'bg-muted'}`}
+          className={`absolute top-[3px] left-[3px] h-4 w-4 rounded-[3px] transition-transform duration-150 ${checked ? 'translate-x-5 bg-bg' : 'bg-ink'}`}
         />
       </span>
     </button>
@@ -104,7 +104,7 @@ export function Tabs<T extends string>({
             onChange(next.id)
             document.getElementById(`${base}-${next.id}`)?.focus()
           }}
-          className={`-mb-px min-h-11 border-b-2 text-14 font-medium transition-colors duration-150 ${tab.id === active ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink'}`}
+          className={`-mb-px min-h-11 border-b-2 text-16 font-medium transition-colors duration-150 ${tab.id === active ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink'}`}
         >
           {tab.name}
         </button>

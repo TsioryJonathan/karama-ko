@@ -5,10 +5,10 @@ import { useCountUp } from './useCountUp'
 
 const EMPTY = '—'
 
-/** Approximate width of the net figure in Clash Display ems, so it fits its cell. */
+/** Approximate width of the net figure in ems, so it fits its cell. */
 function widthInEm(n: number): number {
   const digits = String(Math.abs(n)).length
-  return digits * 0.66 + Math.floor((digits - 1) / 3) * 0.25 + 0.9
+  return digits * 0.62 + Math.floor((digits - 1) / 3) * 0.28 + 1.1
 }
 
 const employeeShare = (r: Result | null, id: string) => r?.contributions.find((c) => c.id === id)?.employee ?? 0
@@ -25,38 +25,41 @@ export function ResultGrid({ result: r }: { result: Result | null }) {
   return (
     <section aria-label="Résultat" className="grid grid-cols-3 gap-px border border-line bg-line">
       <Cell label="Salaire net" className="col-span-3 lg:col-span-2">
-        <div className="@container mt-6 lg:mt-10">
+        <div className="@container mt-4 lg:mt-6">
           <p
-            className="figure font-display leading-[1.05] font-medium tracking-[-0.03em] text-net [--net-max:56px] lg:[--net-max:96px]"
+            className="figure leading-[1.05] font-semibold tracking-[-0.02em] text-net [--net-max:56px] lg:[--net-max:88px]"
             style={{ fontSize: `min(var(--net-max), ${(100 / widthInEm(r?.net ?? 0)).toFixed(2)}cqw)` }}
-            aria-live="polite"
-            aria-atomic="true"
+            aria-hidden="true"
           >
             {r ? (
               <>
                 {formatNumber(net)}
-                <span className="text-[0.4em] tracking-normal">{NBSP}Ar</span>
+                <span className="text-[0.4em] font-medium tracking-normal">{NBSP}Ar</span>
               </>
             ) : (
               <span className="text-line">{EMPTY}</span>
             )}
           </p>
+          {/* Screen readers get the settled value once, not every animation frame. */}
+          <p className="sr-only" aria-live="polite" aria-atomic="true">
+            {r ? `Salaire net : ${formatNumber(r.net)} ariary` : ''}
+          </p>
         </div>
-        <p className="mt-4 text-14 text-muted lg:mt-6">
+        <p className="mt-4 text-16 text-muted">
           {r ? `Par mois, pour un brut de ${formatNumber(r.gross)}${NBSP}Ar.` : 'Saisissez un montant pour voir le net.'}
         </p>
       </Cell>
 
       <Cell label="Taux effectif" className="col-span-3 lg:col-span-1">
-        <p className="figure mt-2 font-display text-32 leading-[1.05] font-medium lg:mt-10">
+        <p className="figure mt-2 text-32 leading-[1.05] font-semibold lg:mt-6">
           {r ? formatPercent(r.effectiveRate) : <span className="text-line">{EMPTY}</span>}
         </p>
-        <p className="mt-2 text-14 text-muted lg:mt-6">Part du brut retenue, impôt et cotisations.</p>
+        <p className="mt-2 text-14 text-muted lg:mt-4">Part du brut retenue : impôt et cotisations.</p>
       </Cell>
 
       {deductions.map((d) => (
         <Cell key={d.label} label={d.label}>
-          <p className="figure mt-2 text-20 font-medium text-deduction lg:text-24">
+          <p className="figure mt-1 text-20 font-semibold text-deduction lg:text-24">
             {r ? formatDeduction(d.amount) : <span className="text-line">{EMPTY}</span>}
           </p>
         </Cell>
@@ -98,7 +101,7 @@ function SplitRibbon({ result: r }: { result: Result | null }) {
         {segments.map((s) => (
           <div key={s.name} className="border-t border-line pt-2">
             <dt className="text-14 text-muted">{s.name}</dt>
-            <dd className="figure flex items-baseline justify-between gap-2 text-14">
+            <dd className="figure flex items-baseline justify-between gap-2 text-16">
               <span className={`font-medium ${s.isNet ? 'text-net' : 'text-deduction'}`}>
                 {r ? (s.isNet ? formatNumber(s.amount) : formatDeduction(s.amount)) : EMPTY}
               </span>

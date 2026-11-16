@@ -17,17 +17,17 @@ export function Sources() {
         <p className="mt-4 text-muted">
           Barème {s.year}, en vigueur depuis le {date(s.effectiveFrom)}. Vérifié le {date(s.updatedAt)}.
         </p>
-        <p className="mt-4 border-l-2 border-warning pl-4 text-14 text-warning">
+        <p className="mt-4 border-l-2 border-warning pl-4 text-16 text-warning">
           Le résultat est une estimation. Il ne tient pas compte des primes, des heures supplémentaires ni des avantages
           en nature, et ne remplace pas une fiche de paie.
         </p>
-        <p className="mt-4 text-14 text-muted">
+        <p className="mt-4 text-16 text-muted">
           Le calcul se fait dans votre navigateur : aucun montant n’est envoyé ni enregistré sur un serveur.
         </p>
       </div>
 
       <div className="space-y-12 lg:col-span-8">
-        <table className="w-full border-t border-ink text-14">
+        <table className="w-full border-t border-ink text-16">
           <caption className="label pb-2 text-left">IRSA, base imposable mensuelle</caption>
           <tbody>
             {s.irsa.brackets.map((b) => {
@@ -59,7 +59,7 @@ export function Sources() {
           </tbody>
         </table>
 
-        <table className="w-full border-t border-ink text-14">
+        <table className="w-full border-t border-ink text-16">
           <caption className="label pb-2 text-left">
             Cotisations, plafonnées à {formatAr(contributionCeiling(s))} de salaire (8 × SME de{' '}
             {formatAr(s.minimumWage)})
@@ -91,8 +91,8 @@ export function Sources() {
         </table>
 
         <div>
-          <h3 className="label font-ui">Sources</h3>
-          <ul className="mt-2 border-t border-ink text-14">
+          <h3 className="label">Sources</h3>
+          <ul className="mt-2 border-t border-ink text-16">
             {s.sources.map((src) => (
               <li key={src.topic} className="border-b border-line py-3">
                 <span className="font-medium">{src.topic}</span>

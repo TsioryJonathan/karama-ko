@@ -15,13 +15,13 @@ export function EmployerPanel({ result: r }: { result: Result }) {
   return (
     <section aria-label="Coût employeur" className="grid gap-px border border-line bg-line lg:grid-cols-3">
       <Cell label="Coût total du poste" className="lg:col-span-2">
-        <p className="figure mt-6 font-display text-32 leading-[1.05] font-medium tracking-[-0.03em] lg:text-48">
+        <p className="figure mt-4 text-32 leading-[1.05] font-semibold tracking-[-0.02em] lg:text-48">
           {formatAr(cost)}
         </p>
         <p className="mt-4 text-14 text-muted">Par mois : salaire brut et cotisations patronales.</p>
       </Cell>
       <Cell label="Charges patronales">
-        <p className="figure mt-2 font-display text-24 leading-[1.05] font-medium lg:mt-6 lg:text-32">
+        <p className="figure mt-2 text-24 leading-[1.05] font-semibold lg:mt-4 lg:text-32">
           {formatNumber(r.employerCharges)}
         </p>
         <p className="mt-2 text-14 text-muted lg:mt-4">
@@ -32,7 +32,7 @@ export function EmployerPanel({ result: r }: { result: Result }) {
       </Cell>
 
       <div className="bg-surface px-4 lg:col-span-3 lg:px-6">
-        <table className="w-full text-14">
+        <table className="w-full text-16">
           <tbody>
             <tr className="border-b border-line">
               <th scope="row" className="py-3 text-left font-medium">
