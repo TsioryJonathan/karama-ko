@@ -65,7 +65,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // The error page is the app itself, and the brand preview is a design sheet: neither is worth caching.
+        globIgnores: ['404.html', 'brand/preview.*'],
+      },
       manifest: {
         name: 'Karama-Ko · Salaire net et IRSA',
         short_name: 'Karama-Ko',
@@ -74,11 +78,11 @@ export default defineConfig({
         display: 'standalone',
         start_url: '.',
         background_color: '#f4f2ed',
-        theme_color: '#111110',
+        theme_color: '#7a2640',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

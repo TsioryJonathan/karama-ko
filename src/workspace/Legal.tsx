@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/BrandLogo'
 import type { ReactNode } from 'react'
 import licenseText from '../../LICENSE?raw'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -16,13 +17,6 @@ function External({ href, children }: { href: string; children: ReactNode }) {
     </a>
   )
 }
-
-const STORAGE = [
-  ['karama:theme', 'Votre choix de thème, clair ou sombre.', 'Jusqu’à ce que vous l’effaciez'],
-  ['karama:last', 'Votre dernière saisie dans le calculateur : montant, sens du calcul, personnes à charge.', 'Jusqu’à ce que vous l’effaciez'],
-  ['karama:workspace:v1', 'Le brouillon de votre atelier : offres comparées, budget, postes, projection, fiche saisie.', 'Jusqu’à ce que vous l’effaciez'],
-  ['karama:plans:v1', 'Les simulations que vous avez choisi d’enregistrer, trente au maximum.', 'Jusqu’à ce que vous les supprimiez'],
-] as const
 
 const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode }> = {
   'mentions-legales': {
@@ -113,6 +107,7 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
           Pour vous éviter de tout ressaisir, certaines saisies sont enregistrées dans le stockage de votre
           navigateur : le détail figure sur la page <a href="#cookies">Cookies et stockage local</a>.
         </p>
+        {/* The providers named below must match AI_PROVIDERS: name those that really receive the questions. */}
         <h2>L’assistant : le seul envoi de données</h2>
         <p>
           L’assistant n’agit que lorsque vous envoyez une question, ou que vous touchez « Pourquoi ce résultat ? ».
@@ -125,10 +120,10 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
         </ul>
         <p>
           Le serveur recalcule lui-même les montants, puis transmet ces informations à l’API d’un fournisseur
-          d’intelligence artificielle tiers pour rédiger la réponse. Selon la configuration, il s’agit de
-          Google (Gemini), xAI (Grok), DeepSeek (dont les serveurs sont situés en Chine), Groq, OpenRouter, OpenAI ou
-          Anthropic ; en cas d’indisponibilité ou de quota épuisé
-          chez l’un, le suivant prend le relais. Karama-Ko n’enregistre ni votre question ni la réponse.
+          d’intelligence artificielle tiers pour rédiger la réponse. Aujourd’hui, il s’agit de Groq, puis de
+          Google (Gemini) et, en dernier recours, de DeepSeek (dont les serveurs sont situés en Chine) ; en cas
+          d’indisponibilité ou de quota épuisé chez l’un, le suivant prend le relais. Karama-Ko n’enregistre ni
+          votre question ni la réponse.
         </p>
         <p>
           Ce service fonctionne surtout avec des offres gratuites. Les conditions d’un fournisseur, surtout gratuit,
@@ -138,7 +133,7 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
           épuisé : les outils de calcul continuent de fonctionner.
         </p>
         <p>
-          Votre adresse IP est gardée en mémoire du serveur pendant la journée seulement, pour limiter le
+          Votre adresse IP est retenue brièvement par le serveur, la journée au plus, pour limiter le
           nombre de demandes par personne et protéger le quota gratuit. Elle n’est ni écrite sur disque ni
           transmise au fournisseur d’IA. N’écrivez pas de nom ni d’information personnelle dans vos
           questions ou dans le nom d’une simulation : seuls des montants sont nécessaires.</p>
@@ -190,57 +185,42 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
     ),
   },
   cookies: {
-    lede: 'Karama-Ko n’utilise aucun cookie. Il enregistre seulement quatre éléments dans le stockage de votre navigateur, uniquement pour votre confort.',
+    lede: 'Karama-Ko n’utilise aucun cookie et ne vous suit pas. Il retient seulement vos préférences et votre travail, sur votre propre appareil.',
     brief: [
       'Aucun cookie, aucun traceur.',
-      'Quatre éléments locaux, jamais envoyés au serveur.',
-      'Aucun bandeau à accepter : rien n’est collecté.',
+      'Ce que vous saisissez reste sur votre appareil.',
+      'Rien à accepter : rien n’est collecté.',
     ],
     body: (
       <>
-        <h2>Pourquoi aucun bandeau de consentement</h2>
+        <h2>Pourquoi il n’y a pas de bandeau</h2>
         <p>
-          Un bandeau est nécessaire quand un site dépose des traceurs qui ne sont pas indispensables au service,
-          par exemple pour la publicité ou les statistiques. Karama-Ko n’en dépose aucun. Les éléments
-          ci-dessous répondent à une demande de votre part : retrouver votre saisie, votre atelier ou votre
-          thème.
+          Un bandeau de consentement est nécessaire quand un site dépose des traceurs pour la publicité ou les
+          statistiques. Karama-Ko n’en dépose aucun : ce qu’il retient répond à votre usage, pour que vous
+          retrouviez votre travail.
         </p>
-        <h2>Ce qui est enregistré dans votre navigateur</h2>
-        <div className="table-scroll">
-          <table className="studio-table legal-table">
-            <caption>Éléments du stockage local (localStorage)</caption>
-            <thead>
-              <tr>
-                <th scope="col">Nom</th>
-                <th scope="col">Rôle</th>
-                <th scope="col">Durée</th>
-              </tr>
-            </thead>
-            <tbody>
-              {STORAGE.map(([name, role, duration]) => (
-                <tr key={name}>
-                  <th scope="row">
-                    <code>{name}</code>
-                  </th>
-                  <td>{role}</td>
-                  <td>{duration}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p>Ces éléments restent sur votre appareil. Ils ne sont jamais envoyés à Karama-Ko.</p>
+        <h2>Ce que le site retient sur votre appareil</h2>
+        <ul>
+          <li>votre choix de thème, clair ou sombre ;</li>
+          <li>votre dernier calcul, pour le retrouver à votre retour ;</li>
+          <li>le brouillon de votre atelier : offres, budget, postes, projection, avec les primes et avantages saisis ;</li>
+          <li>les simulations que vous choisissez d’enregistrer, trente au maximum.</li>
+        </ul>
+        <p>
+          Tout cela reste sur votre appareil jusqu’à ce que vous l’effaciez. Le site ne l’envoie jamais de lui-même à
+          Karama-Ko ; la seule exception est ce que vous envoyez vous-même à l’assistant, décrit dans la{' '}
+          <a href="#confidentialite">politique de confidentialité</a>.
+        </p>
         <h2>Fonctionnement hors connexion</h2>
         <p>
-          Le site peut être installé comme une application. Il garde alors une copie de ses propres fichiers
-          (pages, images, polices) dans le cache de votre navigateur, pour s’ouvrir plus vite et fonctionner
-          sans connexion. Ce cache ne contient aucune de vos données.
+          Le site peut être installé comme une application. Il garde alors une copie de ses propres pages pour
+          s’ouvrir plus vite, même sans connexion. Cette copie ne contient aucune de vos données.
         </p>
         <h2>Tout effacer</h2>
         <p>
-          Dans les réglages de votre navigateur, supprimez les données du site (cookies et données de sites) :
-          cela efface les quatre éléments ci-dessus et le cache de l’application. Le site continuera de
-          fonctionner, avec ses réglages d’origine.
+          Supprimez vos simulations dans <a href="#atelier/sauvegardes">Mes simulations</a>, puis effacez les
+          données du site dans les réglages de votre navigateur. Le site continuera de fonctionner, avec ses
+          réglages d’origine.
         </p>
       </>
     ),
@@ -390,33 +370,26 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
     lede: 'Le code de Karama-Ko est libre : vous pouvez le lire, le réutiliser et le modifier, à condition de conserver la mention de licence.',
     brief: [
       'Code sous licence MIT.',
-      'Polices : licences distinctes, non couvertes par la licence MIT.',
+      'Les polices ont leur propre licence.',
       'Barèmes : textes officiels malgaches.',
     ],
     body: (
       <>
         <h2>Licence MIT</h2>
         <pre>{licenseText}</pre>
-        <h2>Composants tiers</h2>
-        <dl>
-          <div>
-            <dt>React, Three.js, Tailwind CSS, Vite</dt>
-            <dd>Licence MIT, propriété de leurs auteurs respectifs.</dd>
-          </div>
-          <div>
-            <dt>Polices Cabinet Grotesk et Satoshi</dt>
-            <dd>
-              Indian Type Foundry, distribuées par <External href="https://www.fontshare.com">Fontshare</External>{' '}
-              sous leur licence de polices gratuites. Elles ne sont pas couvertes par la licence MIT.
-            </dd>
-          </div>
-          <div>
-            <dt>Barèmes</dt>
-            <dd>
-              Textes officiels malgaches, cités sur la page <a href="#baremes">Barèmes et sources</a>.
-            </dd>
-          </div>
-        </dl>
+        <h2>Crédits</h2>
+        <ul>
+          <li>Le site s’appuie sur des logiciels libres, utilisés selon leurs propres licences.</li>
+          <li>
+            Les polices Cabinet Grotesk et Satoshi (Indian Type Foundry, via{' '}
+            <External href="https://www.fontshare.com">Fontshare</External>) suivent la licence de polices gratuites de
+            Fontshare, distincte de la licence MIT.
+          </li>
+          <li>
+            Les barèmes viennent des textes officiels malgaches, cités sur la page{' '}
+            <a href="#baremes">Barèmes et sources</a>.
+          </li>
+        </ul>
       </>
     ),
   },
@@ -429,7 +402,7 @@ export default function Legal({ page }: { page: LegalId }) {
     <div className="legal-page">
       <header className="legal-header print:hidden">
         <a href={location.pathname} className="home-wordmark">
-          Karama-Ko
+          <BrandLogo />
         </a>
         <nav aria-label="Navigation principale">
           <a href={`${location.pathname}#outils`} className="btn btn-outline">

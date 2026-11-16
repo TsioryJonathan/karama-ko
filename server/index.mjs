@@ -102,7 +102,6 @@ export function createApp({ env = process.env, trustProxy = env.TRUST_PROXY === 
         path = resolve(ROOT, 'index.html')
         status = 404
       }
-      if (extname(path) === '.html' && url.pathname !== '/' && url.pathname !== '/index.html') status = 404
       const type = extname(path)
       let content = await readFile(path)
       const headers = {
@@ -120,7 +119,8 @@ export function createApp({ env = process.env, trustProxy = env.TRUST_PROXY === 
       const wanted = String(req.headers['accept-encoding'] || '')
       const encoding = COMPRESSIBLE.has(type) ? (/\bbr\b/.test(wanted) ? 'br' : /\bgzip\b/.test(wanted) ? 'gzip' : '') : ''
       if (encoding) {
-        const key = `${path}:${encoding}:${content.length}`
+        // The file's own date is part of the key: a rebuilt file of the same size must not be served from the old copy.
+        const key = `${path}:${encoding}:${(await stat(path)).mtimeMs}:${content.length}`
         if (!compressed.has(key))
           compressed.set(key, encoding === 'br' ? await brotli(content) : await deflate(content))
         content = compressed.get(key)

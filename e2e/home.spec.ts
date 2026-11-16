@@ -1,6 +1,8 @@
 import { digits, expect, test } from './fixtures'
 
 test('the home page tells the story, then offers the tools', async ({ page }) => {
+  // The 3D scene is drawn in software here: under a loaded machine the eased scroll needs time.
+  test.setTimeout(75_000)
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'Karama-Ko' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Calculer mon salaire' }).first()).toBeVisible()

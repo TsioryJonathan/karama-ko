@@ -3,6 +3,7 @@ import { compute } from '../engine/compute'
 import type { Scenario } from '../engine/planning'
 import { formatAr } from '../lib/format'
 import { Markdown } from '../components/Markdown'
+import { BrandFeedback } from '../components/BrandFeedback'
 import { BrandMark } from '../components/BrandMark'
 import { ActionIcon } from './tools'
 
@@ -34,7 +35,9 @@ export function Assistant({
   const [busy, setBusy] = useState(false)
   const controller = useRef<AbortController | null>(null)
   const field = useRef<HTMLTextAreaElement>(null)
+  // Asked once, when the panel is first opened: pages that never open it make no request at all.
   useEffect(() => {
+    if (!open || configured !== null) return
     const abort = new AbortController()
     fetch('/api/health', { signal: abort.signal })
       .then((r) => (r.ok ? r.json() : null))
@@ -42,11 +45,9 @@ export function Assistant({
       .catch(() => {
         if (!abort.signal.aborted) setConfigured(false)
       })
-    return () => {
-      abort.abort()
-      controller.current?.abort()
-    }
-  }, [])
+    return () => abort.abort()
+  }, [open, configured])
+  useEffect(() => () => controller.current?.abort(), [])
   useEffect(() => {
     if (!open) return
     field.current?.focus()
@@ -114,7 +115,7 @@ export function Assistant({
     <aside className="assistant print:hidden" aria-labelledby="assistant-title" data-open={open || undefined} inert={!open}>
       <header>
         <span className="assistant-mark">
-          <ActionIcon id="chat" />
+          <BrandMark size={36} />
         </span>
         <h2 id="assistant-title">Vos questions</h2>
         <button type="button" className="icon-button" aria-label="Fermer l’assistant" onClick={onClose}>
@@ -138,10 +139,15 @@ export function Assistant({
             ))}
           </ul>
         </section>
-        {configured === false && (
-          <p role="status" className="studio-notice">
+        {open && configured === null && (
+          <BrandFeedback state="loading" className="assistant-busy">
+            Connexion à l’assistant…
+          </BrandFeedback>
+        )}
+        {open && configured === false && (
+          <BrandFeedback state="offline" className="studio-notice">
             L’assistant n’est pas connecté sur cette installation. Les outils de calcul restent disponibles.
-          </p>
+          </BrandFeedback>
         )}
         {!answer && !busy && (
           <div className="assistant-suggestions">
@@ -155,15 +161,14 @@ export function Assistant({
           </div>
         )}
         {busy && (
-          <p className="assistant-busy" role="status">
-            <BrandMark state="loading" size={32} />
+          <BrandFeedback state="loading" className="assistant-busy">
             Préparation de l’explication…
-          </p>
+          </BrandFeedback>
         )}
         {error && (
-          <p role="alert" className="studio-notice">
+          <BrandFeedback state={navigator.onLine ? 'error' : 'offline'} role="alert" className="studio-notice">
             {error}
-          </p>
+          </BrandFeedback>
         )}
         {stale && (
           <p className="studio-notice">
