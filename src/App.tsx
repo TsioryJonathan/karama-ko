@@ -9,6 +9,8 @@ import { formatAr, formatNumber } from './lib/format'
 import { MAX_DEPENDANTS, loadInitial, persist, type Mode, type State } from './lib/state'
 
 const MAX_AMOUNT = 1_000_000_000
+/** Focusing the field on a phone would pop the keyboard over the page. */
+const DESKTOP = matchMedia('(min-width: 960px)').matches
 const QUICK_AMOUNTS = [500_000, 1_000_000, 2_000_000, 5_000_000]
 const MODES: { id: Mode; name: string }[] = [
   { id: 'gross', name: 'Du brut au net' },
@@ -51,7 +53,7 @@ export function App() {
           </nav>
         </header>
 
-        <main className="mx-auto grid w-full max-w-page grow items-center gap-x-16 gap-y-10 px-6 pt-8 pb-28 lg:grid-cols-[340px_1fr] lg:px-10 lg:py-10">
+        <main className="mx-auto grid w-full max-w-page grow items-center gap-x-16 gap-y-10 px-6 pt-8 pb-28 lg:grid-cols-[340px_1fr] lg:px-10 lg:py-6">
           <form className="print:hidden" onSubmit={(e) => e.preventDefault()}>
             <h1 className="font-display text-28">Calculez votre salaire net</h1>
             <p className="mt-3 text-muted">Madagascar, secteur privé. Barème d’octobre 2026.</p>
@@ -73,20 +75,24 @@ export function App() {
 
               <div>
                 <AmountField
-                  label={state.mode === 'net' ? 'Salaire net souhaité, par mois' : 'Salaire brut, par mois'}
+                  label={state.mode === 'net' ? 'Votre salaire net souhaité, par mois' : 'Votre salaire brut, par mois'}
                   value={state.amount}
                   onChange={(amount) => update({ amount })}
                   hint={hint}
                   tone={tone}
+                  autoFocus={DESKTOP && state.amount === null}
                 />
-                <div className="mt-1 grid grid-cols-4 gap-2" role="group" aria-label="Montants courants">
+                <p id="quick-amounts" className="text-14 text-muted">
+                  Ou choisissez un exemple
+                </p>
+                <div className="mt-2 grid grid-cols-4 gap-2" role="group" aria-labelledby="quick-amounts">
                   {QUICK_AMOUNTS.map((amount) => (
                     <button
                       key={amount}
                       type="button"
                       aria-pressed={state.amount === amount}
                       onClick={() => update({ amount })}
-                      className={`figure min-h-11 rounded px-1 text-14 font-medium transition-colors duration-150 ${state.amount === amount ? 'bg-ink text-bg' : 'bg-raised hover:bg-line'}`}
+                      className={`figure min-h-11 rounded px-1 text-14 font-medium transition-colors duration-150 ${state.amount === amount ? 'bg-ink text-bg' : 'bg-raised hover:bg-control/45'}`}
                     >
                       {formatNumber(amount)}
                     </button>

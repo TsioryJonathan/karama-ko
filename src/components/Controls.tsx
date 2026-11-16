@@ -20,7 +20,7 @@ export function Stepper({
   onChange: (v: number) => void
 }) {
   const button =
-    'h-11 w-11 rounded bg-raised text-20 transition-opacity duration-150 hover:opacity-80 disabled:cursor-not-allowed disabled:text-control/45 disabled:hover:opacity-100'
+    'h-11 w-11 rounded border border-control bg-surface text-20 transition-colors duration-150 hover:border-ink disabled:cursor-not-allowed disabled:border-line disabled:text-control/45'
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="label">{label}</span>

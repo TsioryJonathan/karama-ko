@@ -12,19 +12,18 @@ export function Breakdown({ result: r }: { result: Result }) {
   const cnaps = share('cnaps')
   const ostie = share('ostie')
   const capNote = cnaps.capped ? `, plafonnée à ${formatAr(r.ceiling)} de salaire` : ''
+  const reached = r.brackets.filter((b) => b.reached).at(-1)
 
-  const steps: { label: string; note?: string; value: string; tone?: 'deduction' | 'net' }[] = [
+  const steps: { label: string; note: string; value: string; total?: boolean }[] = [
     {
       label: `CNaPS, part salarié (${formatRate(cnaps.employeeRate)})`,
       note: `Retraite et prévoyance${capNote}.`,
       value: formatDeduction(cnaps.employee),
-      tone: 'deduction',
     },
     {
       label: `OSTIE, part salarié (${formatRate(ostie.employeeRate)})`,
       note: `Médecine d’entreprise${capNote}.`,
       value: formatDeduction(ostie.employee),
-      tone: 'deduction',
     },
     {
       label: 'Base imposable',
@@ -33,7 +32,7 @@ export function Breakdown({ result: r }: { result: Result }) {
     },
     {
       label: 'IRSA selon le barème',
-      note: 'Somme des tranches du tableau ci-dessous.',
+      note: `Calculé par tranches, jusqu’à celle à ${formatRate(reached?.rate ?? 0)}.`,
       value: formatNumber(r.grossTax),
     },
     {
@@ -52,13 +51,12 @@ export function Breakdown({ result: r }: { result: Result }) {
         ? `Relevé au minimum de perception de ${formatAr(minimumTax)}.`
         : `Au-dessus du minimum de perception de ${formatAr(minimumTax)}.`,
       value: formatDeduction(r.irsa),
-      tone: 'deduction',
     },
     {
       label: 'Salaire net',
       note: 'Brut moins CNaPS, OSTIE et IRSA.',
-      value: formatNumber(r.net),
-      tone: 'net',
+      value: formatAr(r.net),
+      total: true,
     },
   ]
 
@@ -70,12 +68,23 @@ export function Breakdown({ result: r }: { result: Result }) {
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen(!open)}
-          className="flex min-h-11 w-full items-center justify-between gap-4 rounded bg-raised px-4 text-left font-medium print:hidden"
+          className="flex min-h-12 w-full items-center justify-between gap-4 rounded border border-control px-4 text-left font-medium transition-colors duration-150 hover:border-ink print:hidden"
         >
-          Détail du calcul
-          <span className="text-14 text-muted">{open ? 'Masquer' : 'Afficher'}</span>
+          {open ? 'Masquer le détail du calcul' : 'Voir le détail du calcul'}
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            aria-hidden="true"
+            className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+          >
+            <path d="M3 6l5 5 5-5" />
+          </svg>
         </button>
-        <span className="hidden min-h-11 items-center font-medium print:flex">Détail du calcul</span>
+        <span className="hidden min-h-11 items-center font-semibold print:flex">Détail du calcul</span>
       </h3>
 
       <div
@@ -83,82 +92,27 @@ export function Breakdown({ result: r }: { result: Result }) {
         className={`grid transition-[grid-template-rows] duration-300 ease-out print:grid-rows-[1fr] ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
       >
         <div className={`overflow-hidden print:visible ${open ? '' : 'invisible'}`}>
-          <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
-          <div>
-          <div className="mt-2 flex items-baseline justify-between gap-4 py-3">
+          <div className="mt-3 flex items-baseline justify-between gap-4 py-3">
             <span className="font-medium">Salaire brut</span>
-            <span className="mono text-16">{formatNumber(r.gross)}</span>
+            <span className="figure font-medium">{formatNumber(r.gross)}</span>
           </div>
           <ol>
             {steps.map((s, i) => (
-              <li key={s.label} className="flex items-baseline gap-4 border-t border-line py-3">
+              <li key={s.label} className={`flex items-baseline gap-4 border-t py-3 ${s.total ? 'border-ink' : 'border-line'}`}>
                 <span className="figure w-5 shrink-0 text-14 text-muted">{i + 1}</span>
                 <span className="min-w-0 grow">
-                  <span className="block font-medium">{s.label}</span>
-                  {s.note && <span className="block text-14 text-muted">{s.note}</span>}
+                  <span className={`block ${s.total ? 'font-semibold' : 'font-medium'}`}>{s.label}</span>
+                  <span className="block text-14 text-muted">{s.note}</span>
                 </span>
-                <span
-                  className={`mono text-16 font-medium ${s.tone === 'net' ? 'font-semibold' : ''}`}
-                >
-                  {s.value}
-                </span>
+                <span className={`figure ${s.total ? 'font-semibold' : 'font-medium'}`}>{s.value}</span>
               </li>
             ))}
           </ol>
-          </div>
-          <LiveScale result={r} />
-          </div>
+          <p className="pt-1 pb-2 text-14 text-muted">
+            Le barème complet et ses sources sont en bas de page.
+          </p>
         </div>
       </div>
     </section>
-  )
-}
-
-/** Bracket table where reached brackets fill up. */
-function LiveScale({ result: r }: { result: Result }) {
-  return (
-    <table className="mt-5 mb-2 w-full self-start text-16">
-      <caption className="pb-2 text-left font-medium">Barème IRSA, base de {formatAr(r.taxableBase)}</caption>
-      <thead>
-        <tr className="border-b border-line text-left text-muted">
-          <th scope="col" className="py-2 font-normal">
-            Tranche
-          </th>
-          <th scope="col" className="py-2 pr-4 text-right font-normal">
-            Taux
-          </th>
-          <th scope="col" className="py-2 text-right font-normal">
-            Impôt
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {r.brackets.map((b) => {
-          const width = b.upTo === null ? b.amount : b.upTo - b.from
-          const fill = width > 0 ? b.amount / width : 0
-          return (
-            <tr key={b.from} className={`border-b border-line ${b.reached ? '' : 'text-muted'}`}>
-              <th scope="row" className="py-2 text-left font-normal">
-                <span className="mono block text-16">
-                  {b.upTo === null
-                    ? `Plus de ${formatNumber(b.from)}`
-                    : `${formatNumber(b.from === 0 ? 0 : b.from + 1)} à ${formatNumber(b.upTo)}`}
-                </span>
-                <span className="mt-2 block h-1 bg-raised" aria-hidden="true">
-                  <span
-                    className="block h-full origin-left bg-ink transition-transform duration-300 ease-out"
-                    style={{ transform: `scaleX(${fill})` }}
-                  />
-                </span>
-              </th>
-              <td className="mono py-2 pr-4 pl-4 text-right align-top">{formatRate(b.rate)}</td>
-              <td className={`mono py-2 text-right align-top `}>
-                {formatNumber(b.tax)}
-              </td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
   )
 }

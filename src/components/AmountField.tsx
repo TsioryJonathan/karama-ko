@@ -8,12 +8,13 @@ interface Props {
   /** Status message under the field. */
   hint?: string
   tone?: 'neutral' | 'warning'
+  autoFocus?: boolean
 }
 
 const MAX_DIGITS = 10
 
 /** Ariary amount field, formatted while typing. */
-export function AmountField({ label, value, onChange, hint, tone = 'neutral' }: Props) {
+export function AmountField({ label, value, onChange, hint, tone = 'neutral', autoFocus }: Props) {
   const id = useId()
   const ref = useRef<HTMLInputElement>(null)
   /** Number of digits left of the caret, restored after formatting. */
@@ -33,17 +34,18 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral' }: 
 
   return (
     <div>
-      <label htmlFor={id} className="label block">
+      <label htmlFor={id} className="block text-16 font-semibold">
         {label}
       </label>
-      <div className="mt-2 flex items-baseline gap-3 rounded border border-control bg-surface px-4 focus-within:border-ink focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
+      <div className="mt-2 flex items-baseline gap-3 rounded-lg border-2 border-ink bg-surface px-5 focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-accent">
         <input
           ref={ref}
           id={id}
           type="text"
           inputMode="numeric"
           autoComplete="off"
-          placeholder="0"
+          placeholder="1 000 000"
+          autoFocus={autoFocus}
           value={text}
           aria-describedby={`${id}-hint`}
           onChange={(e) => {
@@ -53,9 +55,9 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral' }: 
             caretDigits.current = before.replace(/\D/g, '').length
             onChange(digits === '' ? null : Number(digits))
           }}
-          className="figure h-16 w-full min-w-0 bg-transparent text-28 font-semibold outline-none placeholder:text-control/45 lg:h-18 lg:text-40"
+          className="figure h-18 w-full min-w-0 bg-transparent text-40 font-semibold outline-none placeholder:text-control/45 lg:h-20"
         />
-        <span className="text-16 font-medium text-muted">Ar</span>
+        <span className="text-20 font-medium text-muted">Ar</span>
       </div>
       <p
         id={`${id}-hint`}

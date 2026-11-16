@@ -51,8 +51,10 @@ export function ResultCard({
   ]
 
   return (
-    <section id="resultat" aria-label="Résultat" className="rounded-lg bg-surface p-6 lg:px-10 lg:py-8">
-      <h2 className="text-16 font-medium text-muted">{title}</h2>
+    <section id="resultat" aria-label="Résultat" className="overflow-hidden rounded-lg bg-surface">
+      {/* The answer sits on an inverted band: it is the one thing to read first. */}
+      <div className="bg-ink px-6 py-6 text-bg lg:px-10 lg:py-7">
+      <h2 className="text-16 font-medium text-bg/70">{title}</h2>
 
       <div className="@container mt-3">
         <p
@@ -60,21 +62,28 @@ export function ResultCard({
           style={{ fontSize: `min(var(--net-max), ${(100 / widthInEm(headline)).toFixed(2)}cqw)` }}
           aria-hidden="true"
         >
-          {r ? formatNumber(shown) : <span className="text-control/45">0</span>}
-          <span className="text-[0.35em] font-medium tracking-normal text-muted">{NBSP}Ar</span>
+          {r ? formatNumber(shown) : <span className="text-bg/30">0</span>}
+          <span className="text-[0.35em] font-medium tracking-normal text-bg/70">{NBSP}Ar</span>
         </p>
         {/* Screen readers get the settled value once, not every animation frame. */}
         <p className="sr-only" aria-live="polite" aria-atomic="true">
           {r ? `${title} : ${formatNumber(headline)} ariary` : ''}
         </p>
       </div>
-      <p className="mt-4 text-muted">
-        {r
-          ? `${formatPercent(r.effectiveRate)} du brut part en impôt et cotisations.`
-          : 'Saisissez un salaire pour voir le résultat.'}
+      <p className="mt-4 text-bg/70">
+        {r ? (
+          <>
+            <strong className="font-semibold text-bg">{formatPercent(r.effectiveRate)}</strong> du brut part en impôt
+            et cotisations.
+          </>
+        ) : (
+          'Saisissez votre salaire pour voir le résultat.'
+        )}
       </p>
+      </div>
 
-      <div className="mt-6 flex h-2 gap-0.5" aria-hidden="true">
+      <div className="px-6 py-6 lg:px-10 lg:py-7">
+      <div className="flex h-2 gap-0.5" aria-hidden="true">
         {r ? (
           segments.map((s) => (
             <div
@@ -89,7 +98,7 @@ export function ResultCard({
       </div>
 
       {/* Employee and employer sides sit next to each other, so nothing needs scrolling. */}
-      <div className="mt-6 grid gap-x-10 gap-y-8 lg:grid-cols-2">
+      <div className="mt-5 grid gap-x-10 gap-y-8 lg:grid-cols-2">
         <section aria-labelledby="employee-side">
           <h3 id="employee-side" className="mb-2 font-semibold">
             Pour le salarié
@@ -133,6 +142,7 @@ export function ResultCard({
           <ShareActions title={`Karama : ${formatAr(r.net)} net pour ${formatAr(r.gross)} brut`} />
         </div>
       )}
+      </div>
     </section>
   )
 }

@@ -13,7 +13,7 @@ Everything is computed in the browser. There is no backend, no account and no da
 ## Features
 
 - Net pay updates on every keystroke, with the effective rate and a ribbon showing where the gross goes.
-- Step-by-step breakdown and a bracket table that fills up to the taxable base.
+- Step-by-step breakdown of the calculation; the full scale and its sources sit at the bottom of the page.
 - Employee and employer sides shown next to each other, with CNaPS, OSTIE and FMFP shares and the total cost of the position.
 - Net to gross mode, to find the gross to ask for.
 - Shareable link (`?brut=1000000&pac=2&vue=employeur`, or `?net=1500000`), native share sheet and a print stylesheet.
