@@ -37,7 +37,7 @@ export function App() {
 
   return (
     <>
-      <div className="flex min-h-dvh flex-col print:min-h-0">
+      <div className="calculator-shell flex min-h-dvh flex-col print:min-h-0">
         <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-2 z-20">
           Aller au résultat
         </a>
@@ -66,7 +66,7 @@ export function App() {
                     type="button"
                     aria-pressed={state.mode === m.id}
                     onClick={() => update({ mode: m.id })}
-                    className={`min-h-10 rounded-[4px] px-2 text-14 font-medium transition-colors duration-150 ${state.mode === m.id ? 'bg-surface font-bold' : 'text-muted hover:text-ink'}`}
+                    className={`min-h-10 rounded-[4px] px-2 text-14 font-medium transition-colors duration-150 ${state.mode === m.id ? 'bg-accent text-on-accent font-bold' : 'text-muted hover:text-ink'}`}
                   >
                     {m.name}
                   </button>
@@ -92,7 +92,7 @@ export function App() {
                       type="button"
                       aria-pressed={state.amount === amount}
                       onClick={() => update({ amount })}
-                      className={`figure min-h-11 rounded px-1 text-14 font-medium transition-colors duration-150 ${state.amount === amount ? 'bg-ink text-bg' : 'bg-raised hover:bg-control/45'}`}
+                      className={`figure min-h-11 rounded px-1 text-14 font-medium transition-colors duration-150 ${state.amount === amount ? 'bg-accent text-on-accent' : 'bg-raised hover:bg-control/45'}`}
                     >
                       {formatNumber(amount)}
                     </button>

@@ -70,3 +70,7 @@ Adding a year means adding a JSON file in `src/scales/`; the engine takes the sc
 ## Stack
 
 Vite, React, TypeScript, Tailwind CSS v4, Vitest, vite-plugin-pwa. Fonts: Cabinet Grotesk 700/800 for headings and primary figures, Satoshi 400/500/700 for text, controls and tabular detail amounts (Fontshare), self-hosted as `woff2`.
+
+The burgundy accent marks selected controls, keyboard focus and the net share. Light and dark themes use separate accent and foreground tokens for contrast.
+
+A subtle paper grid drifts behind the calculator. It stays static with reduced motion enabled and is hidden when printing.
