@@ -351,12 +351,13 @@ function Calculator() {
           {
             id: 'calc',
             name: hasExtras(state.extras)
-              ? 'Salaire brut avec primes et heures supplémentaires (sans leurs exonérations)'
+              ? 'Salaire brut avec primes et heures supplémentaires'
               : state.mode === 'net'
                 ? 'Brut à demander'
                 : 'Mon salaire',
-            gross: result?.gross ?? 0,
+            gross: hasExtras(state.extras) && pay ? pay.base : (result?.gross ?? 0),
             dependants: state.dependants,
+            extras: hasExtras(state.extras) ? state.extras : undefined,
           },
         ]}
         open={aiOpen}

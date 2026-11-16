@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { compute } from '../engine/compute'
+import { payslip, hasExtras } from '../engine/pay'
 import { parseIntent, type Intent } from '../engine/intent'
 import type { Scenario } from '../engine/planning'
 import { formatAr } from '../lib/format'
@@ -71,7 +71,12 @@ export function Assistant({
   // Results are tied to the exact snapshot that was sent, not to later edits.
   const [snapshot, setSnapshot] = useState('')
   const changedByAssistant = useRef(false)
-  const context = scenarios.map((s) => ({ name: s.name, gross: s.gross, dependants: s.dependants }))
+  // What the model is told: the cash gross, extras included, as a plain salary.
+  const context = scenarios.map((s) => ({
+    name: s.name,
+    gross: s.extras && hasExtras(s.extras) ? payslip(s.gross, s.dependants, s.extras).gross : s.gross,
+    dependants: s.dependants,
+  }))
   const current = JSON.stringify(context)
   const stale = !!answer && current !== snapshot && !changedByAssistant.current
   const send = async (sent = question) => {
@@ -134,7 +139,11 @@ export function Assistant({
     handled.current = requested.id
     if (configured) void latest.current(requested.question)
   }, [requested, configured])
-  const known = scenarios.map((s) => ({ ...s, result: compute(s.gross, s.dependants) }))
+  // What is shown: the real payslip, exemptions included, so it matches the tool's own result.
+  const known = scenarios.map((s) => {
+    const pay = payslip(s.gross, s.dependants, s.extras)
+    return { ...s, gross: pay.gross, result: pay.result }
+  })
 
   return (
     <aside className="assistant print:hidden" aria-labelledby="assistant-title" data-open={open || undefined} inert={!open}>
