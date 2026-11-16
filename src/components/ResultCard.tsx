@@ -19,7 +19,7 @@ function widthInEm(n: number): number {
 function Row({ label, dot, value, total }: { label: string; dot?: string; value: string; total?: boolean }) {
   return (
     <div
-      className={`flex min-h-10 items-center justify-between gap-4 border-t ${total ? 'border-ink font-semibold' : 'border-line'}`}
+      className={`flex min-h-10 items-center justify-between gap-4 border-t ${total ? 'border-ink font-bold' : 'border-line'}`}
     >
       <dt className="flex items-center gap-3">
         {dot && <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden="true" />}
@@ -58,7 +58,7 @@ export function ResultCard({
 
       <div className="@container mt-3">
         <p
-          className="figure leading-none font-semibold tracking-[-0.03em] [--net-max:56px] lg:[--net-max:80px]"
+          className="figure font-display leading-[1.05] font-extrabold tracking-[-0.03em] [--net-max:56px] lg:[--net-max:80px]"
           style={{ fontSize: `min(var(--net-max), ${(100 / widthInEm(headline)).toFixed(2)}cqw)` }}
           aria-hidden="true"
         >
@@ -73,7 +73,7 @@ export function ResultCard({
       <p className="mt-4 text-bg/70">
         {r ? (
           <>
-            <strong className="font-semibold text-bg">{formatPercent(r.effectiveRate)}</strong> du brut part en impôt
+            <strong className="font-bold text-bg">{formatPercent(r.effectiveRate)}</strong> du brut part en impôt
             et cotisations.
           </>
         ) : (
@@ -100,7 +100,7 @@ export function ResultCard({
       {/* Employee and employer sides sit next to each other, so nothing needs scrolling. */}
       <div className="mt-5 grid gap-x-10 gap-y-8 lg:grid-cols-2">
         <section aria-labelledby="employee-side">
-          <h3 id="employee-side" className="mb-2 font-semibold">
+          <h3 id="employee-side" className="mb-2 text-20 font-bold">
             Pour le salarié
           </h3>
           <dl>
@@ -113,7 +113,7 @@ export function ResultCard({
         </section>
 
         <section aria-labelledby="employer-side">
-          <h3 id="employer-side" className="mb-2 font-semibold">
+          <h3 id="employer-side" className="mb-2 text-20 font-bold">
             Pour l’employeur
           </h3>
           <dl>

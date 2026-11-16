@@ -42,7 +42,7 @@ export function App() {
           Aller au résultat
         </a>
         <header className="mx-auto flex w-full max-w-page shrink-0 items-center justify-between px-6 pt-6 lg:px-10 lg:pt-8">
-          <a href="./" className="font-display text-20 font-semibold">
+          <a href="./" className="font-display text-28 font-extrabold">
             Karama
           </a>
           <nav className="flex items-center gap-1 print:hidden" aria-label="Navigation">
@@ -55,7 +55,7 @@ export function App() {
 
         <main className="mx-auto grid w-full max-w-page grow items-center gap-x-16 gap-y-10 px-6 pt-8 pb-28 lg:grid-cols-[340px_1fr] lg:px-10 lg:py-6">
           <form className="print:hidden" onSubmit={(e) => e.preventDefault()}>
-            <h1 className="font-display text-28">Calculez votre salaire net</h1>
+            <h1 className="font-display text-28 font-extrabold leading-[1.1]">Calculez votre salaire net</h1>
             <p className="mt-3 text-muted">Madagascar, secteur privé. Barème d’octobre 2026.</p>
 
             <div className="mt-8 space-y-8 lg:mt-10">
@@ -66,7 +66,7 @@ export function App() {
                     type="button"
                     aria-pressed={state.mode === m.id}
                     onClick={() => update({ mode: m.id })}
-                    className={`min-h-10 rounded-[4px] px-2 text-14 font-medium transition-colors duration-150 ${state.mode === m.id ? 'bg-surface' : 'text-muted hover:text-ink'}`}
+                    className={`min-h-10 rounded-[4px] px-2 text-14 font-medium transition-colors duration-150 ${state.mode === m.id ? 'bg-surface font-bold' : 'text-muted hover:text-ink'}`}
                   >
                     {m.name}
                   </button>
@@ -134,7 +134,7 @@ export function App() {
           aria-hidden="true"
         >
           <span className="font-medium">Salaire net</span>
-          <span className="figure text-20 font-semibold">{formatAr(result.net)}</span>
+          <span className="figure text-20 font-bold">{formatAr(result.net)}</span>
         </div>
       )}
     </>

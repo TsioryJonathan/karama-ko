@@ -34,7 +34,7 @@ export function Stepper({
         >
           {MINUS}
         </button>
-        <output className="figure w-10 text-center text-20 leading-[44px] font-semibold" aria-live="polite">
+        <output className="figure w-10 text-center text-20 leading-[44px] font-bold" aria-live="polite">
           {value}
         </output>
         <button

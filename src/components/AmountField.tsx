@@ -34,7 +34,7 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral', au
 
   return (
     <div>
-      <label htmlFor={id} className="block text-16 font-semibold">
+      <label htmlFor={id} className="block text-16 font-bold">
         {label}
       </label>
       <div className="mt-2 flex items-baseline gap-3 rounded-lg border-2 border-ink bg-surface px-5 focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-accent">
@@ -55,7 +55,7 @@ export function AmountField({ label, value, onChange, hint, tone = 'neutral', au
             caretDigits.current = before.replace(/\D/g, '').length
             onChange(digits === '' ? null : Number(digits))
           }}
-          className="figure h-18 w-full min-w-0 bg-transparent text-40 font-semibold outline-none placeholder:text-control/45 lg:h-20"
+          className="figure font-display h-18 w-full min-w-0 bg-transparent text-40 font-bold outline-none placeholder:text-control/45 lg:h-20"
         />
         <span className="text-20 font-medium text-muted">Ar</span>
       </div>

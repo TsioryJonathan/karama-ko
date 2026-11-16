@@ -84,7 +84,7 @@ export function Breakdown({ result: r }: { result: Result }) {
             <path d="M3 6l5 5 5-5" />
           </svg>
         </button>
-        <span className="hidden min-h-11 items-center font-semibold print:flex">Détail du calcul</span>
+        <span className="hidden min-h-11 items-center font-bold print:flex">Détail du calcul</span>
       </h3>
 
       <div
@@ -101,10 +101,10 @@ export function Breakdown({ result: r }: { result: Result }) {
               <li key={s.label} className={`flex items-baseline gap-4 border-t py-3 ${s.total ? 'border-ink' : 'border-line'}`}>
                 <span className="figure w-5 shrink-0 text-14 text-muted">{i + 1}</span>
                 <span className="min-w-0 grow">
-                  <span className={`block ${s.total ? 'font-semibold' : 'font-medium'}`}>{s.label}</span>
+                  <span className={`block ${s.total ? 'font-bold' : 'font-medium'}`}>{s.label}</span>
                   <span className="block text-14 text-muted">{s.note}</span>
                 </span>
-                <span className={`figure ${s.total ? 'font-semibold' : 'font-medium'}`}>{s.value}</span>
+                <span className={`figure ${s.total ? 'font-bold' : 'font-medium'}`}>{s.value}</span>
               </li>
             ))}
           </ol>

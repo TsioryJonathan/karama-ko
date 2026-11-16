@@ -30,7 +30,7 @@ export function Sources() {
       <div className="space-y-3">
         <div className="rounded-lg bg-surface p-6 lg:p-8">
         <table className="w-full text-16">
-          <caption className="pb-3 text-left font-semibold">IRSA, base imposable mensuelle</caption>
+          <caption className="pb-3 text-left font-bold">IRSA, base imposable mensuelle</caption>
           <tbody>
             {s.irsa.brackets.map((b) => {
               const low = from
@@ -64,7 +64,7 @@ export function Sources() {
 
         <div className="rounded-lg bg-surface p-6 lg:p-8">
         <table className="w-full text-16">
-          <caption className="pb-3 text-left font-semibold">
+          <caption className="pb-3 text-left font-bold">
             Cotisations, plafonnées à {formatAr(contributionCeiling(s))} de salaire (8 × SME de{' '}
             {formatAr(s.minimumWage)})
           </caption>
@@ -96,7 +96,7 @@ export function Sources() {
         </div>
 
         <div className="rounded-lg bg-surface p-6 lg:p-8">
-          <h3 className="text-16 font-semibold">Sources</h3>
+          <h3 className="text-16 font-bold">Sources</h3>
           <ul className="mt-3 text-16">
             {s.sources.map((src) => (
               <li key={src.topic} className="border-b border-line py-3">
