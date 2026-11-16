@@ -37,7 +37,20 @@ export function App() {
 
   return (
     <>
-      <div className="calculator-shell flex min-h-dvh flex-col print:min-h-0">
+      <div
+        className="calculator-shell flex min-h-dvh flex-col print:min-h-0"
+        onPointerMove={(event) => {
+          if (event.pointerType !== 'mouse' || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+          const shell = event.currentTarget
+          const bounds = shell.getBoundingClientRect()
+          shell.style.setProperty('--pointer-x', `${((event.clientX - bounds.left) / bounds.width - 0.5) * 24}px`)
+          shell.style.setProperty('--pointer-y', `${((event.clientY - bounds.top) / bounds.height - 0.5) * 24}px`)
+        }}
+        onPointerLeave={(event) => {
+          event.currentTarget.style.removeProperty('--pointer-x')
+          event.currentTarget.style.removeProperty('--pointer-y')
+        }}
+      >
         <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-2 z-20">
           Aller au résultat
         </a>

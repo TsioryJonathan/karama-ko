@@ -38,16 +38,17 @@
 
 /* Achromatic ledger: the chrome is ink on stone, one hue marks the net. */
 :root {
-  --bg: #f4f4f3;
-  --surface: #ffffff;
-  --raised: #eae9e6;
-  --ink: #0a0a0a;
-  --ink-muted: #63615d;
-  --line: #e6e5e2;
-  --control: #8d8b86;
+  --bg: #e6e5e1;
+  --surface: #eeede9;
+  --raised: #dcdad4;
+  --ink: #242321;
+  --ink-muted: #5f5d58;
+  --line: #d2d0ca;
+  --control: #848179;
   --accent: #842d46;
   --on-accent: #ffffff;
   --warning: #92400e;
+  --grid-opacity: 0.18;
   color-scheme: light;
 }
 [data-theme='dark'] {
@@ -61,6 +62,7 @@
   --accent: #e69aaf;
   --on-accent: #261219;
   --warning: #e3a84a;
+  --grid-opacity: 0.35;
   color-scheme: dark;
 }
 
@@ -146,11 +148,13 @@
     inset: -64px;
     z-index: -1;
     pointer-events: none;
-    opacity: 0.35;
+    opacity: var(--grid-opacity);
     background-image:
       linear-gradient(var(--line) 1px, transparent 1px),
       linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size: 64px 64px;
+    translate: var(--pointer-x, 0px) var(--pointer-y, 0px);
+    transition: translate 400ms ease-out;
     animation: paper-drift 48s linear infinite;
   }
   @keyframes paper-drift {
@@ -202,6 +206,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .calculator-shell::before {
+    translate: none;
     animation: none;
   }
   html {
