@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { BrandFeedback } from './components/BrandFeedback'
 import { GrainField } from './components/GrainField'
 import { ScaleNotice } from './components/ScaleNotice'
 import { LoadingScreen, NotFoundScreen } from './components/Screens'
@@ -128,14 +129,14 @@ function Calculator() {
   const [state, setState] = useState<State>(loadInitial)
   const update = (patch: Partial<State>) => setState((s) => ({ ...s, ...patch }))
   useEffect(() => persist(state), [state])
-  const [copied, setCopied] = useState(false)
+  const [copyFeedback, setCopyFeedback] = useState<{ message: string; state: 'success' | 'error'; id: number } | null>(null)
   const [aiOpen, setAiOpen] = useState(false)
   const [ask, setAsk] = useState<{ id: number; question: string } | undefined>()
   useEffect(() => {
-    if (!copied) return
-    const timer = setTimeout(() => setCopied(false), 3000)
+    if (!copyFeedback) return
+    const timer = setTimeout(() => setCopyFeedback(null), 5000)
     return () => clearTimeout(timer)
-  }, [copied])
+  }, [copyFeedback])
 
   const outOfRange = state.amount !== null && state.amount > MAX_AMOUNT
   const pay = useMemo(() => {
@@ -179,9 +180,9 @@ function Calculator() {
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(location.href)
-                  setCopied(true)
+                  setCopyFeedback({ message: 'Lien copié.', state: 'success', id: Date.now() })
                 } catch {
-                  /* clipboard refused: the link stays in the address bar */
+                  setCopyFeedback({ message: 'Copie indisponible. Copiez le lien depuis la barre d’adresse.', state: 'error', id: Date.now() })
                 }
               }}
             >
@@ -334,9 +335,9 @@ function Calculator() {
         suggestions={CALC_QUESTIONS}
         ask={ask}
       />
-      <p role="status" className="studio-toast print:hidden" data-on={copied ? '' : undefined}>
-        Lien copié.
-      </p>
+      <BrandFeedback state={copyFeedback?.state ?? 'success'} className="studio-toast print:hidden" visible={!!copyFeedback} replayKey={copyFeedback?.id}>
+        {copyFeedback?.message}
+      </BrandFeedback>
 
       <Sources />
       <SiteFooter />

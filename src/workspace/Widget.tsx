@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/BrandLogo'
 import { useEffect, useState } from 'react'
 import { compute, SCALE } from '../engine/compute'
 import { inverse } from '../engine/inverse'
@@ -23,7 +24,7 @@ export default function Widget() {
         rel="noreferrer"
         className="font-display text-28 font-extrabold"
       >
-        Karama
+        <BrandLogo />
       </a>
       <p className="text-muted">Votre salaire à Madagascar</p>
       <div className="studio-actions my-4">

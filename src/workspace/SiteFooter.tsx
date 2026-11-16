@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/BrandLogo'
 import { LEGAL_PAGES } from './legal-pages'
 
 const COLUMNS = [
@@ -26,7 +27,7 @@ export function SiteFooter() {
   return (
     <footer className="site-footer print:hidden">
       <div className="site-footer-brand">
-        <a href={home}>Karama-Ko</a>
+        <a href={home}><BrandLogo size={44} /></a>
         <p>Des outils pour comprendre et préparer un salaire à Madagascar, secteur privé non agricole.</p>
       </div>
       {COLUMNS.map((column) => (

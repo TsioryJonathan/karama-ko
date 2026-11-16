@@ -42,7 +42,9 @@
   --surface: #ffffff;
   --raised: #e9e6df;
   --ink: #1c1b19;
-  --ink-muted: #55524c;
+  --ink-muted: #4a4741;
+  /* Thin strokes disappear on a light page: body text is set one step heavier there. */
+  --weight-body: 500;
   --line: #d2cdc2;
   --control: #7c766a;
   --accent: #7a2640;
@@ -55,6 +57,7 @@
   color-scheme: light;
 }
 [data-theme='dark'] {
+  --weight-body: 400;
   --bg: #0e0e0e;
   --surface: #181818;
   --raised: #262626;
@@ -114,6 +117,7 @@
     color: var(--ink);
     font-family: var(--font-ui);
     font-size: 16px;
+    font-weight: var(--weight-body);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -473,11 +477,14 @@
     left: 50%;
     bottom: 24px;
     z-index: 50;
+    width: max-content;
     max-width: min(480px, calc(100vw - 32px));
-    padding: 12px 18px;
-    border-radius: 999px;
-    background: var(--ink);
-    color: var(--bg);
+    padding: 10px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
     font-weight: 500;
     pointer-events: none;
     opacity: 0;
@@ -554,7 +561,7 @@
   .select-list small {
     display: block;
     font-size: 13px;
-    font-weight: 400;
+    font-weight: var(--weight-body);
     color: var(--ink-muted);
   }
   .studio-main {
@@ -813,9 +820,6 @@
     place-items: center;
     width: 36px;
     height: 36px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: var(--on-accent);
   }
   .assistant-body {
     display: grid;
@@ -991,7 +995,7 @@
     border: 1px solid var(--control);
     border-radius: 6px;
     background: var(--surface);
-    font-weight: 400;
+    font-weight: var(--weight-body);
   }
   .studio-field input[type='range'] {
     width: 100%;
@@ -1346,14 +1350,6 @@
     font-size: 22px;
     letter-spacing: -0.03em;
     transition: opacity 300ms;
-  }
-  /* Over the hero, the title is the wordmark. */
-  .home-header:not([data-solid]) .home-wordmark {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .home-header:not([data-solid]) .home-wordmark:focus-visible {
-    opacity: 1;
   }
   .home-header nav {
     display: flex;
@@ -1813,7 +1809,7 @@
   }
   .quick-parts dd + dd {
     font-size: 14px;
-    font-weight: 400;
+    font-weight: var(--weight-body);
     color: var(--feature-muted);
   }
   .quick-link {
@@ -2073,7 +2069,7 @@
   }
   .bento-info span {
     display: block;
-    font-weight: 400;
+    font-weight: var(--weight-body);
     color: var(--ink-muted);
   }
   .bento-arrow {
@@ -2531,7 +2527,7 @@ html {
     color: var(--ink-muted);
   }
   .bd-group li[data-tone='muted'] b {
-    font-weight: 400;
+    font-weight: var(--weight-body);
   }
   .bd-group li[data-tone='strong'] {
     background: color-mix(in srgb, var(--ink) 4%, transparent);
@@ -3076,5 +3072,72 @@ html {
   }
   .assistant-answer p.assistant-asked {
     white-space: pre-wrap;
+  }
+}
+
+@layer components {
+  .brand-feedback {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-feedback > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .brand-feedback .karama-mark {
+    align-self: center;
+  }
+}
+
+@layer components {
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .brand-logo .karama-mark {
+    flex: none;
+  }
+  .legal-article dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .home-wordmark:has(.brand-logo) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  .home-header:not([data-solid]) .home-wordmark {
+    padding: 2px 8px;
+    border-radius: 8px;
+    background: var(--bg);
+  }
+}
+@media (max-width: 600px) {
+  .home-header .brand-logo-label,
+  .legal-header .brand-logo-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .home-header {
+    gap: 8px;
+  }
+}
+@media (max-width: 360px) {
+  .studio-bar .brand-logo-label,
+  .legal-header .brand-logo-label {
+    font-size: 18px;
+  }
+  .studio-bar .brand-logo,
+  .legal-header .brand-logo {
+    gap: 4px;
   }
 }

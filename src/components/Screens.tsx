@@ -1,3 +1,4 @@
+import { BrandLogo } from './BrandLogo'
 import type { ReactNode } from 'react'
 import { GrainField } from './GrainField'
 import { BrandMark, type BrandState } from './BrandMark'
@@ -23,7 +24,7 @@ export function StatusPage({
       <GrainField fixed />
       <header>
         <a href="/" className="home-wordmark">
-          Karama-Ko
+          <BrandLogo />
         </a>
       </header>
       <main role={role}>

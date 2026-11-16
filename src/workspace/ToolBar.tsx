@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/BrandLogo'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { TOOLS, ToolIcon, type ToolGroupId, type ToolId } from './tools'
@@ -51,6 +52,7 @@ export function Menu({
       <button
         type="button"
         className="menu-trigger"
+        aria-label={label}
         data-tone={tone}
         data-active={active || undefined}
         aria-expanded={open}
@@ -83,7 +85,7 @@ export function ToolBar({ current, children }: { current: ToolId; children?: Rea
   return (
     <header className="studio-bar print:hidden">
       <a href={home} className="home-wordmark">
-        Karama-Ko
+        <BrandLogo />
       </a>
       <nav aria-label="Outils Karama-Ko">
         {(Object.keys(GROUP_LABELS) as ToolGroupId[]).map((group) => {

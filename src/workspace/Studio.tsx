@@ -6,6 +6,7 @@ import { formatAr, formatPercent } from '../lib/format'
 import { serialize } from '../lib/state'
 import { Breakdown } from '../components/Breakdown'
 import { BrandMark } from '../components/BrandMark'
+import { BrandFeedback } from '../components/BrandFeedback'
 import { DependantsField, NumberField, SelectField, TextField, Metric, Difference, Notice } from './Fields'
 import { SalaryChart, SalaryControls } from './SalaryChart'
 import { Assistant } from './Assistant'
@@ -118,7 +119,11 @@ export default function Studio({ panel }: { panel: Panel }) {
   const [data, setData] = useState(loadWorkspace)
   const [saved, setSaved] = useState(loadSaved)
   const [name, setName] = useState('Ma simulation')
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState<{ message: string; state: 'success' | 'error'; id: number } | null>(null)
+  const notificationId = useRef(0)
+  const notify = (message: string, state: 'success' | 'error' = 'success') => {
+    setStatus({ message, state, id: ++notificationId.current })
+  }
   const [invalidShare] = useState(
     () => !!location.hash.split('/')[2] && !decodeSharedWorkspace(location.hash),
   )
@@ -156,21 +161,21 @@ export default function Studio({ panel }: { panel: Panel }) {
     }
   }, [data])
   useEffect(() => {
-    setStatus('')
+    setStatus(null)
   }, [panel])
   useEffect(() => {
     if (!status) return
-    const timer = setTimeout(() => setStatus(''), 5000)
+    const timer = setTimeout(() => setStatus(null), 5000)
     return () => clearTimeout(timer)
   }, [status])
 
   const save = () => {
     if (!name.trim()) {
-      setStatus('Donnez un nom à votre simulation.')
+      notify('Donnez un nom à votre simulation.', 'error')
       return
     }
     if (saved.length >= 30) {
-      setStatus('Vous avez atteint 30 simulations. Supprimez-en une ou exportez vos données.')
+      notify('Vous avez atteint 30 simulations. Supprimez-en une ou exportez vos données.', 'error')
       return
     }
     const entry: SavedPlan = {
@@ -183,9 +188,9 @@ export default function Studio({ panel }: { panel: Panel }) {
     try {
       localStorage.setItem(SAVED_KEY, JSON.stringify(next))
       setSaved(next)
-      setStatus('Simulation enregistrée sur cet appareil.')
+      notify('Simulation enregistrée sur cet appareil.')
     } catch {
-      setStatus('Impossible d’enregistrer. Exportez votre simulation pour la conserver.')
+      notify('Impossible d’enregistrer. Exportez votre simulation pour la conserver.', 'error')
     }
   }
   const removeSaved = (id: string) => {
@@ -193,17 +198,17 @@ export default function Studio({ panel }: { panel: Panel }) {
     try {
       localStorage.setItem(SAVED_KEY, JSON.stringify(next))
       setSaved(next)
-      setStatus('Simulation supprimée.')
+      notify('Simulation supprimée.')
     } catch {
-      setStatus('Impossible de modifier les sauvegardes sur cet appareil.')
+      notify('Impossible de modifier les sauvegardes sur cet appareil.', 'error')
     }
   }
   const share = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl(panel, data))
-      setStatus('Lien copié. Il contient les montants de cette simulation.')
+      notify('Lien copié. Il contient les montants de cette simulation.')
     } catch {
-      setStatus('Copie indisponible. Utilisez l’export JSON pour partager cette simulation.')
+      notify('Copie indisponible. Utilisez l’export JSON pour partager cette simulation.', 'error')
     }
   }
   const exportCsv = () => {
@@ -284,7 +289,7 @@ export default function Studio({ panel }: { panel: Panel }) {
         '. Estimation hors primes, heures supplémentaires et avantages en nature.',
     ])
     downloadFile('karama-' + panel + '.csv', csv(rows), 'text/csv;charset=utf-8')
-    setStatus('Export CSV téléchargé.')
+    notify('Export CSV téléchargé.')
   }
   let aiScenarios: Scenario[] = data.scenarios
   if (panel === 'fiche')
@@ -432,15 +437,15 @@ export default function Studio({ panel }: { panel: Panel }) {
         </div>
         <ScaleNotice />
         {invalidShare && (
-          <p role="alert" className="studio-notice">
+          <BrandFeedback state="error" className="studio-notice">
             Ce lien partagé est invalide. Votre atelier local a été conservé ; aucune donnée du lien n’a été
             chargée.
-          </p>
+          </BrandFeedback>
         )}
         {storageError && (
-          <p role="alert" className="studio-notice">
+          <BrandFeedback state="error" className="studio-notice">
             {storageError}
-          </p>
+          </BrandFeedback>
         )}
 
         {panel === 'comparer' &&
@@ -1101,16 +1106,16 @@ export default function Studio({ panel }: { panel: Panel }) {
                   e.target.value = ''
                   if (!file) return
                   if (file.size > 100_000) {
-                    setStatus('Ce fichier dépasse la limite de 100 Ko.')
+                    notify('Ce fichier dépasse la limite de 100 Ko.', 'error')
                     return
                   }
                   try {
                     const imported: unknown = JSON.parse(await file.text())
                     if (!validWorkspace(imported)) throw new Error()
                     setData(imported)
-                    setStatus('Simulation importée. Vous pouvez l’enregistrer sous un nouveau nom.')
+                    notify('Simulation importée. Vous pouvez l’enregistrer sous un nouveau nom.')
                   } catch {
-                    setStatus('Ce fichier ne contient pas une simulation Karama valide.')
+                    notify('Ce fichier ne contient pas une simulation Karama valide.', 'error')
                   }
                 }}
               />
@@ -1140,7 +1145,7 @@ export default function Studio({ panel }: { panel: Panel }) {
                         onClick={() => {
                           setData(structuredClone(s.data))
                           setName(s.name)
-                          setStatus('Simulation chargée. Choisissez un outil pour la modifier.')
+                          notify('Simulation chargée. Choisissez un outil pour la modifier.')
                         }}
                       >
                         Ouvrir {s.name}
@@ -1180,9 +1185,9 @@ export default function Studio({ panel }: { panel: Panel }) {
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(embedCode)
-                  setStatus('Code d’intégration copié.')
+                  notify('Code d’intégration copié.')
                 } catch {
-                  setStatus('Sélectionnez le code ci-dessus pour le copier.')
+                  notify('Sélectionnez le code ci-dessus pour le copier.', 'error')
                 }
               }}
             >
@@ -1224,9 +1229,9 @@ export default function Studio({ panel }: { panel: Panel }) {
           ask={ask}
         />
       )}
-      <p role="status" className="studio-toast print:hidden" data-on={status ? '' : undefined}>
-        {status}
-      </p>
+      <BrandFeedback state={status?.state ?? 'success'} className="studio-toast print:hidden" visible={!!status} replayKey={status?.id}>
+        {status && <span key={status.id}>{status.message}</span>}
+      </BrandFeedback>
     </div>
   )
 }

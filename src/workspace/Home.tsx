@@ -1,3 +1,4 @@
+import { BrandLogo } from '../components/BrandLogo'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { GrainField } from '../components/GrainField'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -122,7 +123,7 @@ export default function Home() {
       </a>
       <header className="home-header">
         <a href={location.pathname} className="home-wordmark">
-          Karama-Ko
+          <BrandLogo />
         </a>
         <nav aria-label="Navigation principale">
           <a href="#outils">Les outils</a>
