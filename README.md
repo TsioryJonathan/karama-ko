@@ -60,7 +60,7 @@ pnpm build    # type-check and production build
 src/
 ├─ engine/      # pure calculation: compute.ts (gross → breakdown), inverse.ts (net → gross)
 ├─ scales/      # 2026.json: brackets, rates, ceilings, sources
-├─ components/  # amount field, receipt ticket, breakdown, sources, share actions
+├─ components/  # amount field, result card, breakdown, sources, share actions
 ├─ lib/         # number formatting, URL and localStorage state
 └─ styles/      # design tokens and fonts
 ```

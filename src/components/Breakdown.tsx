@@ -64,7 +64,7 @@ export function Breakdown({ result: r }: { result: Result }) {
 
   return (
     <section>
-      <h3 className="text-20">
+      <h3 className="font-ui text-16">
         <button
           type="button"
           aria-expanded={open}
@@ -96,7 +96,7 @@ export function Breakdown({ result: r }: { result: Result }) {
                   {s.note && <span className="block text-14 text-muted">{s.note}</span>}
                 </span>
                 <span
-                  className={`mono text-16 font-medium ${s.tone === 'deduction' ? 'text-deduction' : s.tone === 'net' ? 'text-net' : ''}`}
+                  className={`mono text-16 font-medium ${s.tone === 'net' ? 'text-net' : ''}`}
                 >
                   {s.value}
                 </span>
@@ -148,7 +148,7 @@ function LiveScale({ result: r }: { result: Result }) {
                 </span>
               </th>
               <td className="mono py-2 pr-4 pl-4 text-right align-top">{formatRate(b.rate)}</td>
-              <td className={`mono py-2 text-right align-top ${b.tax > 0 ? 'text-deduction' : ''}`}>
+              <td className={`mono py-2 text-right align-top `}>
                 {formatNumber(b.tax)}
               </td>
             </tr>

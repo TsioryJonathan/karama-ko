@@ -34,8 +34,6 @@
   --deduction: #b4441f;
   --net: #1f5e4a;
   --warning: #94600f;
-  --hard: #111110;
-  --dot: #d9d5cb;
   color-scheme: light;
 }
 [data-theme='dark'] {
@@ -47,8 +45,6 @@
   --deduction: #e0703f;
   --net: #5fb394;
   --warning: #e3a84a;
-  --hard: #000000;
-  --dot: #262523;
   color-scheme: dark;
 }
 
@@ -80,7 +76,9 @@
   --text-96: 96px;
 
   --radius-*: initial;
-  --radius: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
   --shadow-*: initial;
 
   --spacing: 4px;
@@ -103,7 +101,7 @@
   h3 {
     font-family: var(--font-display);
     font-weight: 600;
-    line-height: 1.02;
+    line-height: 1.08;
     letter-spacing: 0;
   }
   :focus-visible {
@@ -143,57 +141,12 @@
     overflow: hidden;
     clip-path: inset(50%);
   }
-  /* Dotted ledger paper behind the receipt. */
-  .paper {
-    background-image: radial-gradient(var(--dot) 1.25px, transparent 1.25px);
-    background-size: 20px 20px;
-  }
-  /* Receipt: torn zigzag edge at the bottom, hard printed shadow. */
-  .ticket-wrap {
-    filter: drop-shadow(0 0 0.75px var(--ink)) drop-shadow(5px 5px 0 var(--hard));
-  }
-  .ticket {
-    --tooth: 9px;
-    background: var(--surface);
-    padding-bottom: calc(var(--tooth) + 24px);
-    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--tooth)) 100%;
-  }
   /* Dotted leader between a payslip label and its amount. */
   .leader {
     flex: 1;
     min-width: 16px;
     border-bottom: 2px dotted var(--line);
     transform: translateY(-5px);
-  }
-  /* Rubber stamp. */
-  .stamp {
-    display: inline-block;
-    padding: 4px 10px;
-    border: 1.5px solid var(--deduction);
-    border-radius: 4px;
-    color: var(--deduction);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    transform: rotate(-2deg);
-  }
-  .barcode {
-    height: 36px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--ink) 0 2px,
-      transparent 2px 5px,
-      var(--ink) 5px 6px,
-      transparent 6px 10px,
-      var(--ink) 10px 13px,
-      transparent 13px 15px
-    );
-    opacity: 0.85;
-  }
-  /* Focus rings on the green rail must stay visible. */
-  .rail :focus-visible {
-    outline-color: currentColor;
   }
   .btn {
     display: inline-flex;
@@ -247,18 +200,6 @@
     --net: #1f5e4a;
     --warning: #94600f;
     color-scheme: light;
-  }
-  .ticket-wrap {
-    filter: none;
-    max-width: none;
-  }
-  .ticket {
-    mask: none;
-    padding: 0;
-  }
-  .paper {
-    background-image: none;
-    padding: 0;
   }
   html {
     font-size: 12px;
