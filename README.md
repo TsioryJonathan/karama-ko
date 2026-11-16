@@ -60,7 +60,7 @@ pnpm build    # type-check and production build
 src/
 ├─ engine/      # pure calculation: compute.ts (gross → breakdown), inverse.ts (net → gross)
 ├─ scales/      # 2026.json: brackets, rates, ceilings, sources
-├─ components/  # amount field, result grid, breakdown, employer panel, sources, share actions
+├─ components/  # amount field, receipt ticket, breakdown, sources, share actions
 ├─ lib/         # number formatting, URL and localStorage state
 └─ styles/      # design tokens and fonts
 ```
@@ -69,4 +69,4 @@ Adding a year means adding a JSON file in `src/scales/`; the engine takes the sc
 
 ## Stack
 
-Vite, React, TypeScript, Tailwind CSS v4, Vitest, vite-plugin-pwa. Font: Switzer (Fontshare), self-hosted as `woff2`.
+Vite, React, TypeScript, Tailwind CSS v4, Vitest, vite-plugin-pwa. Fonts: Clash Display for titles and Switzer for text and figures (Fontshare), self-hosted as `woff2`.

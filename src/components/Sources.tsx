@@ -11,9 +11,9 @@ export function Sources() {
   const s = SCALE_2026
   let from = 0
   return (
-    <section id="baremes" className="grid gap-x-6 print:hidden gap-y-8 border-t border-line py-12 lg:grid-cols-12 lg:py-24">
-      <div className="lg:col-span-4">
-        <h2 className="text-24 lg:text-32">Barèmes et sources</h2>
+    <section id="baremes" className="mx-auto mt-16 max-w-[600px] space-y-8 print:hidden">
+      <div>
+        <h2 className="text-32">Barèmes et sources</h2>
         <p className="mt-4 text-muted">
           Barème {s.year}, en vigueur depuis le {date(s.effectiveFrom)}. Vérifié le {date(s.updatedAt)}.
         </p>
@@ -26,7 +26,7 @@ export function Sources() {
         </p>
       </div>
 
-      <div className="space-y-12 lg:col-span-8">
+      <div className="space-y-10">
         <table className="w-full border-t border-ink text-16">
           <caption className="label pb-2 text-left">IRSA, base imposable mensuelle</caption>
           <tbody>

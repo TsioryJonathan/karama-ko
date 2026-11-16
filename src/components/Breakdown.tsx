@@ -63,20 +63,20 @@ export function Breakdown({ result: r }: { result: Result }) {
   ]
 
   return (
-    <section className="border-b border-line">
-      <h2 className="text-20 tracking-normal">
+    <section>
+      <h3 className="text-20">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen(!open)}
-          className="flex min-h-14 w-full items-center justify-between gap-4 text-left font-semibold print:hidden"
+          className="flex min-h-11 w-full items-center justify-between gap-4 text-left font-semibold print:hidden"
         >
           Détail du calcul
           <span className="text-16 font-normal underline underline-offset-4">{open ? 'Masquer' : 'Afficher'}</span>
         </button>
-        <span className="hidden min-h-14 items-center font-medium print:flex">Détail du calcul</span>
-      </h2>
+        <span className="hidden min-h-11 items-center font-medium print:flex">Détail du calcul</span>
+      </h3>
 
       <div
         id={id}
@@ -113,7 +113,7 @@ export function Breakdown({ result: r }: { result: Result }) {
 /** Bracket table where reached brackets fill up. */
 function LiveScale({ result: r }: { result: Result }) {
   return (
-    <table className="mt-6 mb-8 w-full border-t border-ink text-16">
+    <table className="mt-6 mb-2 w-full border-t border-ink text-16">
       <caption className="label pb-2 text-left">Barème IRSA, base de {formatAr(r.taxableBase)}</caption>
       <thead>
         <tr className="border-b border-line text-left text-muted">

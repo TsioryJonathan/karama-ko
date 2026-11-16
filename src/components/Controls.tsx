@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId } from 'react'
 import { MINUS } from '../lib/format'
 
 /** Bounded − / + selector. */
@@ -87,7 +87,7 @@ export function Tabs<T extends string>({
 }) {
   const base = useId()
   return (
-    <div role="tablist" aria-label={label} className="flex gap-6 border-b border-line">
+    <div role="tablist" aria-label={label} className="inline-flex rounded border-[1.5px] border-ink p-0.5">
       {tabs.map((tab, i) => (
         <button
           key={tab.id}
@@ -104,21 +104,11 @@ export function Tabs<T extends string>({
             onChange(next.id)
             document.getElementById(`${base}-${next.id}`)?.focus()
           }}
-          className={`-mb-px min-h-11 border-b-2 text-16 font-medium transition-colors duration-150 ${tab.id === active ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink'}`}
+          className={`min-h-10 rounded-[3px] px-4 text-16 font-medium transition-colors duration-150 ${tab.id === active ? 'bg-ink text-bg' : 'hover:bg-line'}`}
         >
           {tab.name}
         </button>
       ))}
-    </div>
-  )
-}
-
-/** Editorial grid cell: label top left, content below. */
-export function Cell({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
-  return (
-    <div className={`bg-surface p-4 lg:p-6 ${className}`}>
-      <div className="label">{label}</div>
-      {children}
     </div>
   )
 }

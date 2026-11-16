@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AmountField } from './components/AmountField'
-import { Breakdown } from './components/Breakdown'
-import { Stepper, Switch, Tabs } from './components/Controls'
-import { EmployerPanel } from './components/EmployerPanel'
-import { ResultGrid } from './components/ResultGrid'
-import { ShareActions } from './components/ShareActions'
+import { Stepper, Switch } from './components/Controls'
 import { Sources } from './components/Sources'
+import { Ticket } from './components/Ticket'
 import { SCALE_2026, compute } from './engine/compute'
 import { inverse } from './engine/inverse'
-import { formatAr } from './lib/format'
-import { MAX_DEPENDANTS, loadInitial, persist, type State, type View } from './lib/state'
+import { formatAr, formatNumber } from './lib/format'
+import { MAX_DEPENDANTS, loadInitial, persist, type State } from './lib/state'
 
 const MAX_AMOUNT = 1_000_000_000
+const QUICK_AMOUNTS = [500_000, 1_000_000, 2_000_000, 5_000_000]
 
 export function App() {
   const [state, setState] = useState<State>(loadInitial)
@@ -36,41 +34,37 @@ export function App() {
   }
 
   return (
-    <div className="mx-auto max-w-page px-6">
-      <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-2 z-10">
+    <div className="lg:pl-16">
+      <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-20 z-20">
         Aller au résultat
       </a>
-      <header className="flex h-16 items-center justify-between border-b border-line">
-        <a href="./" className="text-20 font-semibold tracking-[-0.01em]">
-          Karama
-        </a>
-        <nav className="flex items-center gap-6 print:hidden">
-          <a
-            href="#baremes"
-            className="flex min-h-11 items-center text-16 text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
-          >
-            Barèmes<span className="max-sm:hidden">&nbsp;et sources</span>
-          </a>
-          <ThemeToggle />
-        </nav>
-      </header>
+      <Rail />
 
-      <main className="grid gap-x-6 gap-y-10 pt-8 pb-24 lg:grid-cols-12 lg:py-16">
-        <div className="lg:col-span-4">
-          <div className="lg:sticky lg:top-8">
-            <h1 className="text-24 lg:text-32">Calculez votre salaire net</h1>
-            <p className="mt-2 text-muted">
-              Madagascar, secteur privé. Barème du 1<sup>er</sup> octobre 2026.
+      <div className="lg:grid lg:grid-cols-[minmax(380px,5fr)_7fr]">
+        {/* The input panel always wears the dark tokens, whatever the page theme. */}
+        <aside
+          data-theme="dark"
+          className="relative overflow-hidden bg-bg px-6 py-10 text-ink lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:px-12 lg:py-14 print:hidden"
+        >
+          <span
+            className="pointer-events-none absolute -right-6 -bottom-24 font-display text-[340px] leading-none font-semibold text-surface select-none max-lg:hidden"
+            aria-hidden="true"
+          >
+            Ar
+          </span>
+
+          <div className="relative">
+            <p className="stamp">Barème octobre 2026</p>
+            <h1 className="mt-5 text-[44px] lg:text-[64px]">
+              Du brut
+              <br />
+              au net.
+            </h1>
+            <p className="mt-4 max-w-[34ch] text-muted">
+              Salaire mensuel du secteur privé à Madagascar : IRSA, CNaPS et OSTIE.
             </p>
 
-            {result && (
-              <p className="mt-6 hidden text-14 print:block">
-                Simulation du {new Date().toLocaleDateString('fr-FR')} : brut de {formatAr(result.gross)},{' '}
-                {result.dependants} personne{result.dependants > 1 ? 's' : ''} à charge.
-              </p>
-            )}
-
-            <form className="mt-8 space-y-4 print:hidden" onSubmit={(e) => e.preventDefault()}>
+            <form className="mt-8 space-y-5" onSubmit={(e) => e.preventDefault()}>
               <AmountField
                 label={state.mode === 'net' ? 'Salaire net souhaité, par mois' : 'Salaire brut mensuel'}
                 value={state.amount}
@@ -78,6 +72,19 @@ export function App() {
                 hint={hint}
                 tone={tone}
               />
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Montants courants">
+                {QUICK_AMOUNTS.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    aria-pressed={state.amount === amount}
+                    onClick={() => update({ amount })}
+                    className={`figure min-h-11 rounded border-[1.5px] px-3 text-16 font-medium transition-colors duration-150 ${state.amount === amount ? 'border-ink bg-ink text-bg' : 'border-muted hover:border-ink'}`}
+                  >
+                    {formatNumber(amount)}
+                  </button>
+                ))}
+              </div>
               <div className="divide-y divide-line border-y border-line">
                 <div className="py-3">
                   <Stepper
@@ -100,64 +107,75 @@ export function App() {
               </div>
             </form>
           </div>
-        </div>
+        </aside>
 
-        <div id="resultat" className="space-y-6 lg:col-span-8">
-          <div className="print:hidden">
-            <Tabs<View>
-              label="Point de vue"
-              tabs={[
-                { id: 'employee', name: 'Salarié' },
-                { id: 'employer', name: 'Employeur' },
-              ]}
-              active={state.view}
-              onChange={(view) => update({ view })}
-            />
-          </div>
-          <ResultGrid result={result} />
-          {result && state.view === 'employer' && <EmployerPanel result={result} />}
-          {result && <Breakdown result={result} />}
-          {result && <ShareActions title={`Karama : ${formatAr(result.net)} net pour ${formatAr(result.gross)} brut`} />}
-        </div>
-      </main>
-
-      <Sources />
-
-      <p className="hidden border-t border-line pt-4 text-12 text-muted print:block">
-        Estimation selon le barème {SCALE_2026.year} (Code général des impôts, art. 01.03.16 et 01.03.19 ; SME de{' '}
-        {formatAr(SCALE_2026.minimumWage)}). Hors primes, heures supplémentaires et avantages en nature. Ne remplace pas
-        une fiche de paie.
-      </p>
+        <main className="paper px-4 pt-10 pb-28 lg:px-12 lg:py-14">
+          {result && (
+            <p className="mb-4 hidden text-14 print:block">
+              Karama, simulation du {new Date().toLocaleDateString('fr-FR')} : brut de {formatAr(result.gross)},{' '}
+              {result.dependants} personne{result.dependants > 1 ? 's' : ''} à charge. Barème {SCALE_2026.year}, SME de{' '}
+              {formatAr(SCALE_2026.minimumWage)}.
+            </p>
+          )}
+          <Ticket result={result} view={state.view} onViewChange={(view) => update({ view })} />
+          <Sources />
+        </main>
+      </div>
 
       {result && (
-        <div className="fixed inset-x-0 bottom-0 flex items-baseline justify-between border-t border-line bg-surface px-6 py-3 lg:hidden print:hidden" aria-hidden="true">
+        <div
+          className="fixed inset-x-0 bottom-0 z-10 flex items-baseline justify-between bg-net px-6 py-3 text-bg lg:hidden print:hidden"
+          aria-hidden="true"
+        >
           <span className="text-16 font-medium">Salaire net</span>
-          <span className="figure text-20 font-semibold text-net">{formatAr(result.net)}</span>
+          <span className="figure text-20 font-semibold">{formatAr(result.net)}</span>
         </div>
       )}
     </div>
   )
 }
 
-function ThemeToggle() {
+/** Vertical rail on desktop, thin strip on mobile: wordmark, sources link, theme toggle. */
+function Rail() {
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark')
+  const toggle = () => {
+    const next = !dark
+    document.documentElement.dataset.theme = next ? 'dark' : 'light'
+    try {
+      localStorage.setItem('karama:theme', next ? 'dark' : 'light')
+    } catch {
+      /* storage unavailable */
+    }
+    setDark(next)
+  }
+  const vertical = 'lg:rotate-180 lg:[writing-mode:vertical-rl]'
+
   return (
-    <button
-      type="button"
-      className="min-h-11 text-16 text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
-      aria-pressed={dark}
-      onClick={() => {
-        const next = !dark
-        document.documentElement.dataset.theme = next ? 'dark' : 'light'
-        try {
-          localStorage.setItem('karama:theme', next ? 'dark' : 'light')
-        } catch {
-          /* storage unavailable */
-        }
-        setDark(next)
-      }}
+    <nav
+      aria-label="Karama"
+      className="rail flex h-14 items-center justify-between bg-net px-6 text-bg lg:fixed lg:inset-y-0 lg:left-0 lg:z-10 lg:h-auto lg:w-16 lg:flex-col lg:px-0 lg:py-6 print:hidden"
     >
-      {dark ? 'Thème clair' : 'Thème sombre'}
-    </button>
+      <a href="./" className={`font-display text-24 font-semibold ${vertical}`}>
+        Karama
+      </a>
+      <div className="flex items-center gap-5 lg:flex-col">
+        <a href="#baremes" className={`flex min-h-11 items-center font-medium underline underline-offset-4 ${vertical}`}>
+          Sources
+        </a>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-pressed={dark}
+          aria-label="Thème sombre"
+          title={dark ? 'Passer au thème clair' : 'Passer au thème sombre'}
+          className="flex h-11 w-11 items-center justify-center rounded border-[1.5px] border-current"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <circle cx="9" cy="9" r="7.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M9 1.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+    </nav>
   )
 }
