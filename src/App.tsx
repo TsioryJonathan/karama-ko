@@ -4,6 +4,7 @@ import { Breakdown } from './components/Breakdown'
 import { Stepper, Switch, Tabs } from './components/Controls'
 import { EmployerPanel } from './components/EmployerPanel'
 import { ResultGrid } from './components/ResultGrid'
+import { ShareActions } from './components/ShareActions'
 import { Sources } from './components/Sources'
 import { SCALE_2026, compute } from './engine/compute'
 import { inverse } from './engine/inverse'
@@ -45,7 +46,7 @@ export function App() {
             href="#baremes"
             className="flex min-h-11 items-center text-14 font-medium text-muted transition-colors duration-150 hover:text-ink"
           >
-            Barèmes et sources
+            Barèmes<span className="max-sm:hidden">&nbsp;et sources</span>
           </a>
           <ThemeToggle />
         </nav>
@@ -60,7 +61,14 @@ export function App() {
               <sup>er</sup> octobre 2026.
             </p>
 
-            <form className="mt-12 space-y-6" onSubmit={(e) => e.preventDefault()}>
+            {result && (
+              <p className="mt-6 hidden text-14 print:block">
+                Simulation du {new Date().toLocaleDateString('fr-FR')} : brut de {formatAr(result.gross)},{' '}
+                {result.dependants} personne{result.dependants > 1 ? 's' : ''} à charge.
+              </p>
+            )}
+
+            <form className="mt-12 space-y-6 print:hidden" onSubmit={(e) => e.preventDefault()}>
               <AmountField
                 label={state.mode === 'net' ? 'Salaire net souhaité, par mois' : 'Salaire brut mensuel'}
                 value={state.amount}
@@ -107,10 +115,17 @@ export function App() {
           <ResultGrid result={result} />
           {result && state.view === 'employer' && <EmployerPanel result={result} />}
           {result && <Breakdown result={result} />}
+          {result && <ShareActions title={`Karama : ${formatAr(result.net)} net pour ${formatAr(result.gross)} brut`} />}
         </div>
       </main>
 
       <Sources />
+
+      <p className="hidden border-t border-line pt-4 text-12 text-muted print:block">
+        Estimation selon le barème {SCALE_2026.year} (Code général des impôts, art. 01.03.16 et 01.03.19 ; SME de{' '}
+        {formatAr(SCALE_2026.minimumWage)}). Hors primes, heures supplémentaires et avantages en nature. Ne remplace pas
+        une fiche de paie.
+      </p>
 
       {result && (
         <div className="fixed inset-x-0 bottom-0 flex items-baseline justify-between border-t border-line bg-surface px-6 py-3 lg:hidden print:hidden">

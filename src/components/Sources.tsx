@@ -11,7 +11,7 @@ export function Sources() {
   const s = SCALE_2026
   let from = 0
   return (
-    <section id="baremes" className="grid gap-x-6 gap-y-8 border-t border-line py-12 lg:grid-cols-12 lg:py-24">
+    <section id="baremes" className="grid gap-x-6 print:hidden gap-y-8 border-t border-line py-12 lg:grid-cols-12 lg:py-24">
       <div className="lg:col-span-4">
         <h2 className="text-24 lg:text-32">Barèmes et sources</h2>
         <p className="mt-4 text-muted">

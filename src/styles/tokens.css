@@ -186,3 +186,32 @@
     animation-duration: 0ms !important;
   }
 }
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  /* Paper is always light, whatever the screen theme. */
+  :root,
+  [data-theme='dark'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --ink: #111110;
+    --ink-muted: #6e6b66;
+    --line: #e4e2dd;
+    --deduction: #b4441f;
+    --net: #1f5e4a;
+    --warning: #94600f;
+    color-scheme: light;
+  }
+  html {
+    font-size: 12px;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  section,
+  tr,
+  li {
+    break-inside: avoid;
+  }
+}
