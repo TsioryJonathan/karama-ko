@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { InteractiveGrid } from './components/InteractiveGrid'
 import { AmountField } from './components/AmountField'
 import { Stepper } from './components/Controls'
 import { ResultCard } from './components/ResultCard'
@@ -51,6 +52,7 @@ export function App() {
           event.currentTarget.style.removeProperty('--pointer-y')
         }}
       >
+        <InteractiveGrid />
         <a href="#resultat" className="sr-only-focusable btn btn-solid absolute top-2 left-2 z-20">
           Aller au résultat
         </a>

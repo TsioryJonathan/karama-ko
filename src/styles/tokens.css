@@ -49,6 +49,7 @@
   --on-accent: #ffffff;
   --warning: #92400e;
   --grid-opacity: 0.18;
+  --tile-highlight: rgb(255 255 255 / 0.55);
   color-scheme: light;
 }
 [data-theme='dark'] {
@@ -63,6 +64,7 @@
   --on-accent: #261219;
   --warning: #e3a84a;
   --grid-opacity: 0.35;
+  --tile-highlight: rgb(255 255 255 / 0.08);
   color-scheme: dark;
 }
 
@@ -142,17 +144,35 @@
     isolation: isolate;
     overflow: clip;
   }
-  .calculator-shell::before {
-    content: '';
+  .interactive-grid {
     position: absolute;
     inset: -64px;
     z-index: -1;
     pointer-events: none;
+  }
+  .interactive-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
     opacity: var(--grid-opacity);
     background-image:
       linear-gradient(var(--line) 1px, transparent 1px),
       linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size: 64px 64px;
+  }
+  .interactive-grid::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 63px;
+    height: 63px;
+    background: var(--tile-highlight);
+    opacity: var(--tile-opacity, 0);
+    transform: translate(var(--tile-x, 0px), var(--tile-y, 0px));
+    transition: opacity 350ms ease-out;
+  }
+  .interactive-grid {
     translate: var(--pointer-x, 0px) var(--pointer-y, 0px);
     transition: translate 400ms ease-out;
     animation: paper-drift 48s linear infinite;
@@ -205,7 +225,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .calculator-shell::before {
+  .interactive-grid {
     translate: none;
     animation: none;
   }
@@ -221,7 +241,7 @@
 }
 
 @media print {
-  .calculator-shell::before {
+  .interactive-grid {
     display: none;
   }
   @page {

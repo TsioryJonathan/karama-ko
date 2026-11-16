@@ -73,4 +73,4 @@ Vite, React, TypeScript, Tailwind CSS v4, Vitest, vite-plugin-pwa. Fonts: Cabine
 
 The burgundy accent marks selected controls, keyboard focus and the net share. Light and dark themes use separate accent and foreground tokens for contrast.
 
-A subtle paper grid drifts behind the calculator and shifts gently with the mouse on desktop. The light theme uses muted grey surfaces to reduce glare. It stays static with reduced motion enabled and is hidden when printing.
+A subtle paper grid drifts behind the calculator and shifts gently with the mouse on desktop. Hovered grid cells highlight white without covering controls. The light theme uses muted grey surfaces to reduce glare. It stays static with reduced motion enabled and is hidden when printing.
