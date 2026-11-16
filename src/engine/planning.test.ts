@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { compute } from './compute'
+import { compute, SCALE } from './compute'
+import { NO_EXTRAS, payslip } from './pay'
 import { annualProjection, grossFromBudget, negotiate, teamBudget } from './planning'
 import { assistantContext } from './assistant'
 
@@ -61,6 +62,32 @@ describe('assistant context boundary', () => {
     })
     expect(compared.comparisons[1].monthlyNetDifference).toBe(156800)
     expect(compared.comparisons[1].twelveIdenticalMonthsNetDifference).toBe(1881600)
+  })
+  it('keeps the overtime exemption and benefits so the assistant matches the calculator', () => {
+    const pay = payslip(1_500_000, 0, { ...NO_EXTRAS, hours1: 20, rate1: 30 })
+    const context = assistantContext({
+      question: 'Comment est calculé l’IRSA ?',
+      scenarios: [{ name: 'Moi', gross: pay.gross, dependants: 0, taxExempt: pay.overtime.exempt, benefitsTaxable: 0 }],
+    })
+    expect(context.scenarios[0].irsa).toBe(pay.result.irsa)
+    expect(context.scenarios[0].net).toBe(pay.result.net)
+    expect(context.scenarios[0].taxExempt).toBe(pay.overtime.exempt)
+    const withBenefits = assistantContext({
+      question: 'Pourquoi ?',
+      scenarios: [{ name: 'Moi', gross: 1_000_000, dependants: 0, benefitsTaxable: 100_000 }],
+    })
+    expect(withBenefits.scenarios[0].irsa).toBe(compute(1_000_000, 0, SCALE, { benefitsTaxable: 100_000 }).irsa)
+  })
+  it.each([
+    { taxExempt: -1 },
+    { taxExempt: 1_500_000 },
+    { taxExempt: 1.5 },
+    { benefitsTaxable: -5 },
+    { benefitsTaxable: 'x' },
+  ])('rejects invalid exemption or benefits %#', (extra) => {
+    expect(() =>
+      assistantContext({ question: 'a', scenarios: [{ name: 'X', gross: 1_000_000, dependants: 0, ...extra }] }),
+    ).toThrow()
   })
   it.each([
     null,

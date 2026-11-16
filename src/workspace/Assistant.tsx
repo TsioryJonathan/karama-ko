@@ -71,12 +71,17 @@ export function Assistant({
   // Results are tied to the exact snapshot that was sent, not to later edits.
   const [snapshot, setSnapshot] = useState('')
   const changedByAssistant = useRef(false)
-  // What the model is told: the cash gross, extras included, as a plain salary.
-  const context = scenarios.map((s) => ({
-    name: s.name,
-    gross: s.extras && hasExtras(s.extras) ? payslip(s.gross, s.dependants, s.extras).gross : s.gross,
-    dependants: s.dependants,
-  }))
+  // What the model is told: the cash gross with extras, plus the exempt overtime and taxable benefits,
+  // so the server recomputes the same IRSA as the calculator.
+  const context = scenarios.map((s) => {
+    const pay = s.extras && hasExtras(s.extras) ? payslip(s.gross, s.dependants, s.extras) : null
+    return {
+      name: s.name,
+      gross: pay ? pay.gross : s.gross,
+      dependants: s.dependants,
+      ...(pay && { taxExempt: pay.overtime.exempt, benefitsTaxable: pay.benefits.total }),
+    }
+  })
   const current = JSON.stringify(context)
   const stale = !!answer && current !== snapshot && !changedByAssistant.current
   const send = async (sent = question) => {

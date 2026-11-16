@@ -26,7 +26,18 @@ export function assistantContext(value: unknown) {
     throw new Error('Choisissez entre une et quatre simulations.')
   const scenarios = body.scenarios.map((v) => {
     if (!v || typeof v !== 'object') throw new Error('Simulation invalide.')
-    const s = v as { name?: unknown; gross?: unknown; dependants?: unknown }
+    const s = v as {
+      name?: unknown
+      gross?: unknown
+      dependants?: unknown
+      taxExempt?: unknown
+      benefitsTaxable?: unknown
+    }
+    // Exempt overtime and taxable benefits are inputs of the calculation, not results: they are bounded here
+    // and the whole payslip is recomputed on the server.
+    const optional = (n: unknown, max: number) => n === undefined || (typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= max)
+    if (!optional(s.taxExempt, typeof s.gross === 'number' ? s.gross : 0) || !optional(s.benefitsTaxable, MAX_SALARY))
+      throw new Error('Heures supplémentaires exonérées ou avantages invalides.')
     if (
       typeof s.gross !== 'number' ||
       !Number.isInteger(s.gross) ||
@@ -40,7 +51,13 @@ export function assistantContext(value: unknown) {
       s.name.length > 80
     )
       throw new Error('Montants ou personnes à charge invalides.')
-    return { name: s.name, ...compute(s.gross, s.dependants) }
+    return {
+      name: s.name,
+      ...compute(s.gross, s.dependants, SCALE, {
+        taxExempt: s.taxExempt as number | undefined,
+        benefitsTaxable: s.benefitsTaxable as number | undefined,
+      }),
+    }
   })
   const reference = scenarios[0]
   const comparisons = scenarios.map((s) => ({
@@ -59,7 +76,7 @@ export function assistantContext(value: unknown) {
     // Topic and reference are what the model can cite; the links only cost tokens.
     sources: SCALE.sources.map(({ topic, reference }) => ({ topic, reference })),
     scope:
-      'Secteur privé non agricole. Salaire fixe uniquement, hors primes, heures supplémentaires et avantages. Minimum IRSA appliqué selon les hypothèses du moteur. Aucune fiche réelle vérifiée.',
+      'Secteur privé non agricole. Le salaire brut peut inclure primes et heures supplémentaires ; taxExempt est la part des heures supplémentaires exonérée d’IRSA (déjà retirée de taxableBase) et benefitsTaxable la valeur imposable des avantages en nature (ajoutée à taxableBase). Minimum IRSA appliqué selon les hypothèses du moteur. Aucune fiche réelle vérifiée.',
     scenarios,
   }
 }
