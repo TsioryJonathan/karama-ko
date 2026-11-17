@@ -7,7 +7,7 @@
 **Understand, compare and plan a salary in Madagascar.**<br />
 Gross ⇄ net, IRSA, CNaPS, OSTIE, offers, negotiation, hiring and end of contract: ten tools, one workshop, calculated in your browser.
 
-![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-8-646cff?style=flat-square&logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white) ![Three.js](https://img.shields.io/badge/Three.js-0.187-049ef4?style=flat-square&logo=threedotjs&logoColor=white) ![Vitest](https://img.shields.io/badge/Vitest-5-6e9f18?style=flat-square&logo=vitest&logoColor=white) ![Playwright](https://img.shields.io/badge/Playwright-e2e-2ead33?style=flat-square&logo=playwright&logoColor=white) ![Node.js](https://img.shields.io/badge/Node.js-22%2B-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white) ![pnpm](https://img.shields.io/badge/pnpm-12-f69220?style=flat-square&logo=pnpm&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-ready-000000?style=flat-square&logo=vercel&logoColor=white) ![PWA](https://img.shields.io/badge/PWA-offline-5a0fc8?style=flat-square&logo=pwa&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-7a2640?style=flat-square&logo=opensourceinitiative&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-8-646cff?style=flat-square&logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white) ![Three.js](https://img.shields.io/badge/Three.js-0.187-049ef4?style=flat-square&logo=threedotjs&logoColor=white) ![Vitest](https://img.shields.io/badge/Vitest-5-6e9f18?style=flat-square&logo=vitest&logoColor=white) ![Playwright](https://img.shields.io/badge/Playwright-e2e-2ead33?style=flat-square&logo=playwright&logoColor=white) ![Node.js](https://img.shields.io/badge/Node.js-22%2B-5fa04e?style=flat-square&logo=nodedotjs&logoColor=white) ![pnpm](https://img.shields.io/badge/pnpm-12-f69220?style=flat-square&logo=pnpm&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-ready-000000?style=flat-square&logo=vercel&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-ready-2496ed?style=flat-square&logo=docker&logoColor=white) ![Postgres](https://img.shields.io/badge/Postgres-counters-4169e1?style=flat-square&logo=postgresql&logoColor=white) [![Docker CI](https://github.com/TsioryJonathan/karama-ko/actions/workflows/docker.yml/badge.svg)](https://github.com/TsioryJonathan/karama-ko/actions/workflows/docker.yml) ![PWA](https://img.shields.io/badge/PWA-offline-5a0fc8?style=flat-square&logo=pwa&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-7a2640?style=flat-square&logo=opensourceinitiative&logoColor=white)
 
 <br /><br />
 
@@ -23,7 +23,7 @@ Ten tools share one workshop, so figures flow from one to the next without retyp
 
 | For an employee | For an employer | Your workspace |
 | --- | --- | --- |
-| **Calculate** gross → net and net → gross, with bonuses, overtime and benefits in kind | **Prepare a hire** from a monthly budget: the salary that fits it | **Saved simulations**, reopened, exported or imported as JSON |
+| **Calculate** gross → net and net → gross, with bonuses, overtime, night / Sunday / holiday premiums and benefits in kind; OSTIE rates and executive status can be set | **Prepare a hire** from a monthly budget: the salary that fits it | **Saved simulations**, reopened, exported or imported as JSON |
 | **Compare** two to four offers, per month and over twelve | **Build a team budget** from roles and headcounts | **Share** a link, export CSV, print to PDF |
 | **Prepare a negotiation**: the gross to ask for a net raise | | **Embed** a compact calculator in another site |
 | **Explore** how net follows gross, with a chart | | |
@@ -31,7 +31,7 @@ Ten tools share one workshop, so figures flow from one to the next without retyp
 | **Project twelve months**, month by month | | |
 | **End of contract**: notice, severance, unused leave | | |
 
-An optional **assistant** explains a result in plain French, in any tool. It only explains the engine's figures; see [How the assistant stays honest](#how-the-assistant-stays-honest).
+An optional **assistant** explains a result in plain French, in any tool. It only explains the engine's figures; see [How the assistant stays honest](#how-the-assistant-stays-honest). An optional **dashboard** (`/admin`) shows anonymous usage counters: see [docs/METRICS.md](docs/METRICS.md).
 
 ![The ten tools](docs/screenshots/tools.jpg)
 
@@ -80,6 +80,8 @@ pnpm build               # type-check, site + PWA, shared engine for the API
 
 The calculator and every tool work without any key.
 
+To try the dashboard without a database: `METRICS_MEMORY=1 ADMIN_TOKEN=local-password pnpm dev`, then open `/#admin` (counters live in memory and vanish on restart).
+
 ### The assistant (optional)
 
 ```sh
@@ -106,42 +108,31 @@ Limits (`AI_RATE_LIMIT_PER_MINUTE`=5, `AI_RATE_LIMIT_PER_IP_DAY`=20, `AI_DAILY_L
 
 ## Deploy
 
-### Vercel
+Details, the full list of environment variables and a troubleshooting table are in [docs/DEPLOY.md](docs/DEPLOY.md). In short:
 
-1. Import the repository. `vercel.json` sets the build (`pnpm build`), the output (`dist`), the security headers and the functions (`api/assistant.mjs`, `api/health.mjs`, `api/track.mjs`, `api/metrics.mjs`).
-2. Add the keys from `.env.example` in *Settings → Environment Variables*. `APP_ORIGIN` is not needed (same-origin requests are accepted).
-3. `SITE_URL` is optional: the production domain feeds the canonical link, the share previews and `sitemap.xml`. Set it with a custom domain.
-4. Unknown addresses get `404.html` with a 404 status; the app draws the page.
-5. Dashboard (optional): create a Postgres database (Neon), run `docs/metrics.sql` on it, then set `DATABASE_URL` and `ADMIN_TOKEN`. The dashboard is at `/#admin`; it asks for the `ADMIN_TOKEN`. Without both variables nothing is counted and the dashboard says it is not configured. `METRICS_MEMORY=1` tries it without a database (counters lost on restart).
+| Where | How |
+| --- | --- |
+| **Vercel** | Import the repository: `vercel.json` sets the build, the headers and the functions. Add the variables you need and **redeploy** (a variable only applies to the next deployment) |
+| **Docker** (Render, Fly, Railway, a VPS) | `docker build -t karama-ko .` then `docker run -p 8787:8787 karama-ko` |
+| **Docker compose** | `ADMIN_TOKEN=a-long-password docker compose up --build`: the app and a Postgres for the dashboard |
+| **Your own server** | `pnpm build && APP_ORIGIN=https://your-domain pnpm start` behind an HTTPS reverse proxy |
+| **Static hosting** | Upload `dist/`: every tool works, the assistant and the dashboard do not |
 
-### Docker
+**Behind a proxy** (Render and most hosts), set `APP_ORIGIN=https://your-domain` (otherwise the assistant and the counters answer 403) and `TRUST_PROXY=1` (otherwise every visitor shares the proxy's address and the per-visitor limits). Set the health check to `/api/health`.
 
-```sh
-docker build -t karama-ko .
-docker run --rm -p 8787:8787 karama-ko                         # site + API, port 8787
-ADMIN_TOKEN=a-long-password docker compose up --build          # app + Postgres for the dashboard counters
-```
+The Docker image is multi-stage, runs as a non-root user under `tini`, and has a healthcheck. The *Docker* workflow (`.github/workflows/docker.yml`) builds it on GitHub, runs it, and checks the whole compose stack: a counter goes into Postgres, comes out in the dashboard and survives a restart. Nothing is published.
 
-The image is multi-stage (build tools stay behind), runs as a non-root user under `tini`, and has a healthcheck on `/api/health`. `compose.yaml` adds a Postgres that creates the counters table on first start (`docs/metrics.sql`), keeps its data in a volume, and runs the app with a read-only filesystem and no capabilities; it listens on `127.0.0.1` only. The dashboard is at `/admin`. Assistant keys go in a `.env` file. The *Docker* workflow builds the image on GitHub, runs it, and checks the whole stack (a counter goes into Postgres, comes out in the dashboard, and survives a restart); nothing is published.
-
-### Your own server
-
-```sh
-pnpm build
-APP_ORIGIN=https://your-domain pnpm start     # Node server: site + /api, port 8787
-```
-
-Put it behind an HTTPS reverse proxy; set `TRUST_PROXY=1` only behind a proxy you control so that `X-Forwarded-For` identifies the visitor. The API validates JSON, caps request sizes, rejects cross-origin browser requests and aborts slow upstream calls. Static hosting of `dist/` alone works for every tool except the assistant.
+The dashboard needs a Postgres (Neon, Render, the compose one) with [`docs/metrics.sql`](docs/metrics.sql) applied, plus `DATABASE_URL` and `ADMIN_TOKEN`. Without both, nothing is counted and the dashboard says it is not configured.
 
 ## Tests
 
 ```sh
 pnpm test            # engine, planning, scales, workspace, markdown
-pnpm test:api        # providers, key rotation, limits, guardrails, server
+pnpm test:api        # providers, key rotation, limits, guardrails, server, counters and dashboard API
 pnpm test:e2e        # the whole site in a real browser (builds and serves it first)
 ```
 
-`pnpm test:e2e` uses Playwright with the Chromium already on the machine when there is one, otherwise `pnpm exec playwright install chromium`. It covers every tool, the assistant against a fake server, the legal pages, the 404, SEO tags, security headers, an accessibility scan in both themes, and phone-size layouts. The API tests stub the providers: no key, no credit spent.
+`pnpm test:e2e` uses Playwright with the Chromium already on the machine when there is one, otherwise `pnpm exec playwright install chromium`. It covers every tool, the assistant against a fake server, the dashboard, the legal pages, the 404, SEO tags, security headers, an accessibility scan in both themes, and phone-size layouts. The API tests stub the providers: no key, no credit spent.
 
 `node scripts/make-screenshots.mjs` redraws the screenshots above; `node scripts/make-og.mjs` redraws the share image.
 
@@ -164,17 +155,26 @@ The scale lives in `src/scales/` as dated files (`SCALES` in `src/scales/index.t
 | CNaPS | 1 % employee / 13 % employer | [CLEISS](https://www.cleiss.fr/docs/cotisations/madagascar.html) |
 | OSTIE | 1 % employee / 5 % employer | CLEISS |
 | FMFP | 1 % employer | CLEISS |
+| Night work (22 h to 5 h) | +30 % minimum if habitual, +50 % if occasional; editable | [Décret 68-172](https://papyrus.ilo.org/dyn/natlex/natlex4.detail?p_lang=fr&p_isn=18313), art. 3 as replaced by [décret 72-226](https://www.dgfag.mg/wp-content/uploads/2019/04/DECRET-N%C2%B0-72-226-du-06-juillet-1972.pdf) |
+| Sunday work, by day | +40 %; editable | Same |
+| Public holiday work, by day | +50 %; editable | Same |
 
 Reference case: 1 000 000 Ar gross, no dependant → **876 500 Ar net**.
 
-Also implemented: overtime paid at the hourly rate (monthly salary ÷ 173,33 h, Code du travail art. 75) with premiums you can edit and the first 20 hours exempt from IRSA (CGI art. 01.03.03, 9°); bonuses taxed as salary; benefits in kind valued per CGI art. 01.03.08 (housing 50 % of rent capped at 25 % of the base salary, car and phone 15 %, the rest at real value); severance 10 days per year capped at six months (Code du travail art. 28) and leave at 2,5 days per month (art. 86).
+Also implemented:
 
-What it cannot know: notice periods (set by collective agreement or decree: you enter them), overtime premiums (decree or agreement; the night, Sunday and holiday minimums of décret 68-172 as amended by 72-226 are the defaults), the social treatment of benefits in kind and of end-of-contract payments, special regimes, absences and reimbursements. Only the scale in force is implemented. The result is an estimate, not a payslip or a compliance certificate.
+- **Overtime** paid at the hourly rate (monthly salary ÷ 173,33 h, Code du travail art. 75) with premiums you can edit (30 % then 50 % by default), the first 20 hours exempt from IRSA (CGI art. 01.03.03, 9°), counted in the order listed.
+- **Night, Sunday and public-holiday hours** inside the normal schedule: only their premium is added to the salary (hours × hourly rate × premium). The decree says these premiums do not add to each other but do add to the overtime premiums, so for hours that are also overtime, add the rates in the overtime lines. These premiums are wages, not overtime: they do not use the 20 exempt hours. The 1 May and 14 October indemnity is not calculated.
+- **Executive or « hors catégorie » status**: overtime is not counted. This follows the usual rule that such staff are not paid overtime; it is not backed by a text in this repository, check the contract.
+- **OSTIE** employee and employer rates can be edited, down to 0 for a company that does not pay it. Rates and hours accept two decimals. These options are available when starting from a gross salary, and travel in the share link, the saved simulations and the assistant.
+- **Bonuses** taxed as salary; **benefits in kind** valued per CGI art. 01.03.08 (housing 50 % of rent capped at 25 % of the base salary, car and phone 15 %, the rest at real value); **severance** 10 days per year capped at six months (Code du travail art. 28) and **leave** at 2,5 days per month (art. 86).
+
+What it cannot know: notice periods (set by collective agreement or decree: you enter them), the real overtime premium of your contract (30 %/50 % is a usual default), the social treatment of benefits in kind and of end-of-contract payments, special regimes, absences and reimbursements. Only the scale in force is implemented. The result is an estimate, not a payslip or a compliance certificate.
 
 ## Privacy
 
 - Calculations happen in the browser. Saved simulations, the draft, the last calculation and the theme live in `localStorage`; clearing site data removes them. No account, cookie or third-party analytics.
-- Anonymous counters (visits, tools opened, options used, assistant outcomes and timing) are kept in a database, one row per day and name from a fixed list (`server/metrics.mjs`): never an amount, a question, an address or an identifier. Each event is reported once per tab session, and not at all under Do Not Track or Global Privacy Control. The dashboard (`/#admin`) shows them behind `ADMIN_TOKEN`.
+- Anonymous counters (visits, tools opened, options used, assistant outcomes and timing) are kept in a database, one row per day and name from a fixed list (`server/metrics.mjs`): never an amount, a question, an address or an identifier. Each event is reported once per tab session, and not at all under Do Not Track or Global Privacy Control. The dashboard (`/admin`) shows them behind `ADMIN_TOKEN`. What is counted, what is not, and how: [docs/METRICS.md](docs/METRICS.md).
 - A shared link contains all the workshop's inputs in the URL fragment (not sent in HTTP requests). It is a readable snapshot, not a private document.
 - Only an explicit assistant request sends the question, the scenario names, gross salaries and dependant counts to the server, which recomputes the figures and forwards them to the configured provider. The server stores nothing; free provider tiers may keep requests under their own terms. The site's legal pages say so in plain language.
 - JSON imports are size-limited and validated; CSV cells are escaped against spreadsheet formula injection.
@@ -182,17 +182,22 @@ What it cannot know: notice periods (set by collective agreement or decree: you 
 ## Structure
 
 ```text
-src/engine/      calculations, planning, bonuses and overtime, end of contract, assistant context
+src/engine/      calculations, planning, bonuses, overtime and premiums, end of contract, assistant context
 src/scales/      dated scales with source references, freshness status, source fingerprints
-src/workspace/   tool pages, shared top bar, assistant panel, legal pages, 3D home scene
-src/components/  calculator parts, background fields, error / 404 / loading screens, markdown
-server/          assistant API (providers, rotation, guardrails, limits), Node server, tests
+src/workspace/   tool pages, shared top bar, assistant panel, dashboard, legal pages, 3D home scene
+src/components/  calculator parts, extras panel, background fields, error / 404 / loading screens, markdown
+src/lib/         link state, number formatting, anonymous counters (page side)
+server/          assistant API, counters and dashboard API, Node server, tests
 api/             Vercel functions, thin wrappers around server/api.mjs
 e2e/             Playwright scenarios
-scripts/         source watch, key check, model comparison, screenshots, share image
+scripts/         source watch, key check, model comparison, screenshots, share image, postbuild
+docs/            deployment, counters, case study, brand notes, counters table
+Dockerfile       the image (multi-stage, non-root, healthcheck)
+compose.yaml     the app and a Postgres for the dashboard
+.github/         scale watch (weekly) and Docker CI
 ```
 
-More: [product case study](docs/CASE_STUDY.md), [brand notes](docs/BRAND.md), [product requirements](PRD.md).
+More: [deployment](docs/DEPLOY.md), [counters and dashboard](docs/METRICS.md), [product case study](docs/CASE_STUDY.md), [brand notes](docs/BRAND.md), [product requirements](PRD.md).
 
 ## License
 

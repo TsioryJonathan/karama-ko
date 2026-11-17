@@ -18,7 +18,7 @@ Planning calculations are pure functions with financial invariant tests. Saved a
 
 The employer-budget inverse searches for the largest integer gross whose employer cost fits. The negotiation tool reuses the net-to-gross solver. Team calculations apply contribution ceilings to each individual before multiplying by headcount.
 
-The React workshop and widget are loaded separately from the calculator. The optional Node server uses the same bundled calculation engine. It recomputes scenario data, validates the request, keeps credentials server-side and controls upstream request volume. No database is needed.
+The React workshop and widget are loaded separately from the calculator. The optional Node server uses the same bundled calculation engine. It recomputes scenario data, validates the request, keeps credentials server-side and controls upstream request volume. No database is needed for the tools or the assistant; an optional Postgres only stores the anonymous usage counters behind the dashboard (see [METRICS.md](METRICS.md)).
 
 AI has a narrow role: explain a selected, deterministic snapshot. It does not choose tax rules or calculate salaries. Requests are explicit, the interface explains what is transmitted, and later edits mark previous explanations as stale. The interface shows an honest unavailable state without credentials.
 
