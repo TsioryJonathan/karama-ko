@@ -24,8 +24,12 @@ const EXTRA_KEYS: Record<keyof Extras, string> = {
   rate1: 'maj1',
   hours2: 'hs2',
   rate2: 'maj2',
-  hours3: 'hs3',
-  rate3: 'maj3',
+  nightHours: 'hnuit',
+  nightRate: 'majnuit',
+  sundayHours: 'hdim',
+  sundayRate: 'majdim',
+  holidayHours: 'hferie',
+  holidayRate: 'majferie',
   ostieEmployee: 'ostie_s',
   ostieEmployer: 'ostie_e',
   cadre: 'cadre',
@@ -40,6 +44,11 @@ const toInt = (v: string | null, max: number) => {
   const n = Number(v)
   return v !== null && /^\d+$/.test(v) && n <= max ? n : null
 }
+/** Rates and hours may carry up to two decimals: `27.5`, `0.25`. Nothing else is accepted. */
+const toDecimal = (v: string | null, max: number) => {
+  const n = Number(v)
+  return v !== null && /^\d+(\.\d{1,2})?$/.test(v) && n <= max ? n : null
+}
 
 /** `?brut=1000000&pac=2&vue=employeur` or `?net=1500000` → state. */
 export function parse(search: string): State | null {
@@ -49,7 +58,8 @@ export function parse(search: string): State | null {
   const extras = { ...NO_EXTRAS }
   for (const key of Object.keys(EXTRA_KEYS) as (keyof Extras)[]) {
     const limit = EXTRA_LIMITS[key]
-    const value = toInt(p.get(EXTRA_KEYS[key]), limit)
+    const money = ['bonus', 'housing', 'vehicle', 'phone', 'other'].includes(key)
+    const value = (money ? toInt : toDecimal)(p.get(EXTRA_KEYS[key]), limit)
     if (value !== null) extras[key] = value
   }
   const hasExtra = Object.values(EXTRA_KEYS).some((k) => p.has(k))

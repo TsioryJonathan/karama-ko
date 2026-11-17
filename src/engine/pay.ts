@@ -6,8 +6,12 @@ export const LEGAL_MONTHLY_HOURS = 173.33
 export const OVERTIME_EXEMPT_HOURS = 20
 /** Usual premiums for the first and the following overtime hours. They are set by decree or collective agreement. */
 export const DEFAULT_OVERTIME_RATES = [30, 50] as const
-/** Usual premium for hours worked on a Sunday or a public holiday; to be checked against the contract. */
-export const DEFAULT_SUNDAY_HOLIDAY_RATE = 100
+/**
+ * Minimum premiums for work at night (22 h to 5 h, habitual), on a Sunday by day and on a public holiday by day:
+ * décret n° 68-172, art. 3 as replaced by décret n° 72-226. Occasional night work is paid +50 %.
+ * They do not add to each other; they add to the overtime premiums.
+ */
+export const DEFAULT_PREMIUM_RATES = { night: 30, sunday: 40, holiday: 50 } as const
 /** OSTIE rates of the scale in force, the starting point of the editable ones. */
 const SCALE_OSTIE = SCALE.contributions.find((c) => c.id === 'ostie')
 export const DEFAULT_OSTIE = { employee: SCALE_OSTIE?.employee ?? 0, employer: SCALE_OSTIE?.employer ?? 0 }
@@ -19,9 +23,13 @@ export interface Extras {
   rate1: number
   hours2: number
   rate2: number
-  /** Hours worked on Sundays and public holidays, with their own premium. */
-  hours3: number
-  rate3: number
+  /** Hours inside the normal schedule worked at night, on a Sunday, on a public holiday: only their premium is added. */
+  nightHours: number
+  nightRate: number
+  sundayHours: number
+  sundayRate: number
+  holidayHours: number
+  holidayRate: number
   /** OSTIE rates in percent: 0 for a company that does not pay it. */
   ostieEmployee: number
   ostieEmployer: number
@@ -43,8 +51,12 @@ export const NO_EXTRAS: Extras = {
   rate1: DEFAULT_OVERTIME_RATES[0],
   hours2: 0,
   rate2: DEFAULT_OVERTIME_RATES[1],
-  hours3: 0,
-  rate3: DEFAULT_SUNDAY_HOLIDAY_RATE,
+  nightHours: 0,
+  nightRate: DEFAULT_PREMIUM_RATES.night,
+  sundayHours: 0,
+  sundayRate: DEFAULT_PREMIUM_RATES.sunday,
+  holidayHours: 0,
+  holidayRate: DEFAULT_PREMIUM_RATES.holiday,
   ostieEmployee: DEFAULT_OSTIE.employee,
   ostieEmployer: DEFAULT_OSTIE.employer,
   cadre: 0,
@@ -57,7 +69,9 @@ export const NO_EXTRAS: Extras = {
 export interface Pay {
   base: number
   bonus: number
-  overtime: { hourly: number; pay1: number; pay2: number; pay3: number; pay: number; exempt: number }
+  overtime: { hourly: number; pay1: number; pay2: number; pay: number; exempt: number }
+  /** Premiums for night, Sunday and public holiday hours: wages, not overtime. */
+  premiums: { night: number; sunday: number; holiday: number; total: number }
   benefits: { housing: number; vehicle: number; phone: number; other: number; total: number }
   /** Cash gross: base, bonuses and overtime. */
   gross: number
@@ -77,18 +91,18 @@ export function payslip(base: number, dependants: number, given: Extras = NO_EXT
   const paid = extras.cadre === 1 ? 0 : 1
   const hours1 = num(extras.hours1) * paid
   const hours2 = num(extras.hours2) * paid
-  const hours3 = num(extras.hours3) * paid
   const factor = (rate: number) => 1 + num(rate) / 100
   const pay1 = Math.round(hourly * hours1 * factor(extras.rate1))
   const pay2 = Math.round(hourly * hours2 * factor(extras.rate2))
-  const pay3 = Math.round(hourly * hours3 * factor(extras.rate3))
-  // The first hours, in the order they are listed, are the ones counted against the exemption.
+  const premium = (hours: number, rate: number) => Math.round(hourly * num(hours) * (num(rate) / 100))
+  const night = premium(extras.nightHours, extras.nightRate)
+  const sunday = premium(extras.sundayHours, extras.sundayRate)
+  const holiday = premium(extras.holidayHours, extras.holidayRate)
+  const premiums = { night, sunday, holiday, total: night + sunday + holiday }
+  // The first overtime hours, in the order they are listed, are the ones counted against the exemption.
   const exempt1 = Math.min(hours1, OVERTIME_EXEMPT_HOURS)
   const exempt2 = Math.min(hours2, OVERTIME_EXEMPT_HOURS - exempt1)
-  const exempt3 = Math.min(hours3, OVERTIME_EXEMPT_HOURS - exempt1 - exempt2)
-  const exempt = Math.round(
-    hourly * exempt1 * factor(extras.rate1) + hourly * exempt2 * factor(extras.rate2) + hourly * exempt3 * factor(extras.rate3),
-  )
+  const exempt = Math.round(hourly * exempt1 * factor(extras.rate1) + hourly * exempt2 * factor(extras.rate2))
 
   // CGI art. 01.03.08: housing at 50 % of the rent, never above 25 % of the fixed cash pay;
   // car and phone at 15 % of the real costs; anything else at its real value.
@@ -98,12 +112,13 @@ export function payslip(base: number, dependants: number, given: Extras = NO_EXT
   const other = Math.round(num(extras.other))
   const benefitsTotal = housing + vehicle + phone + other
 
-  const gross = base + bonus + pay1 + pay2 + pay3
+  const gross = base + bonus + pay1 + pay2 + premiums.total
   const rated = withRates(scale, 'ostie', num(extras.ostieEmployee), num(extras.ostieEmployer))
   return {
     base,
     bonus,
-    overtime: { hourly, pay1, pay2, pay3, pay: pay1 + pay2 + pay3, exempt },
+    overtime: { hourly, pay1, pay2, pay: pay1 + pay2, exempt },
+    premiums,
     benefits: { housing, vehicle, phone, other, total: benefitsTotal },
     gross,
     result: compute(gross, dependants, rated, { taxExempt: exempt, benefitsTaxable: benefitsTotal }),
@@ -117,7 +132,9 @@ export const hasExtras = (given: Extras) => {
     e.bonus > 0 ||
     e.hours1 > 0 ||
     e.hours2 > 0 ||
-    e.hours3 > 0 ||
+    e.nightHours > 0 ||
+    e.sundayHours > 0 ||
+    e.holidayHours > 0 ||
     e.housing > 0 ||
     e.vehicle > 0 ||
     e.phone > 0 ||
@@ -134,8 +151,12 @@ export const EXTRA_LIMITS: Record<keyof Extras, number> = {
   rate1: 200,
   hours2: 300,
   rate2: 200,
-  hours3: 300,
-  rate3: 200,
+  nightHours: 300,
+  nightRate: 200,
+  sundayHours: 300,
+  sundayRate: 200,
+  holidayHours: 300,
+  holidayRate: 200,
   ostieEmployee: 100,
   ostieEmployer: 100,
   cadre: 1,
@@ -145,7 +166,7 @@ export const EXTRA_LIMITS: Record<keyof Extras, number> = {
   other: 1_000_000_000,
 }
 
-const ADDED_LATER: (keyof Extras)[] = ['hours3', 'rate3', 'ostieEmployee', 'ostieEmployer', 'cadre']
+const ADDED_LATER: (keyof Extras)[] = ['nightHours', 'nightRate', 'sundayHours', 'sundayRate', 'holidayHours', 'holidayRate', 'ostieEmployee', 'ostieEmployer', 'cadre']
 
 /** Imported or shared data: missing extras are fine, malformed ones are not. */
 export function validExtras(v: unknown): boolean {

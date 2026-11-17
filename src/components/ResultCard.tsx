@@ -112,6 +112,9 @@ export function ResultCard({
                 <Row label="Salaire de base" value={formatNumber(pay.base)} />
                 {pay.bonus > 0 && <Row label="Primes" value={`+${formatNumber(pay.bonus)}`} />}
                 {pay.overtime.pay > 0 && <Row label="Heures supplémentaires" value={`+${formatNumber(pay.overtime.pay)}`} />}
+                {pay.premiums.total > 0 && (
+                  <Row label="Majorations nuit, dimanche, fériés" value={`+${formatNumber(pay.premiums.total)}`} />
+                )}
               </>
             )}
             <Row label="Salaire brut" value={r ? formatNumber(r.gross) : EMPTY} />

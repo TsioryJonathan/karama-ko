@@ -54,6 +54,60 @@ export function NumberField({
     </div>
   )
 }
+const decimalText = (n: number) => String(n).replace('.', ',')
+
+/**
+ * A number with up to two decimals, typed with a comma or a point: percentages and hours.
+ * The text is kept while typing ("27," stays "27,") and tidied when the field is left.
+ */
+export function DecimalField({
+  label,
+  value,
+  onChange,
+  max = 100,
+  suffix = '%',
+}: {
+  label: string
+  value: number
+  onChange: (n: number) => void
+  max?: number
+  suffix?: string
+}) {
+  const id = useId()
+  const [text, setText] = useState(decimalText(value))
+  // Follow the value when it changes from outside (reset, another simulation), not while it matches what is typed.
+  useEffect(() => {
+    if (Number(text.replace(',', '.') || 0) !== value) setText(decimalText(value))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  return (
+    <div className="studio-field">
+      <label htmlFor={id}>{label}</label>
+      <div className="studio-input-wrap">
+        <input
+          id={id}
+          type="text"
+          inputMode="decimal"
+          value={text}
+          onBlur={() => setText(decimalText(value))}
+          onChange={(e) => {
+            const typed = e.currentTarget.value.replace(',', '.')
+            if (!/^\d{0,6}\.?\d{0,2}$/.test(typed)) return
+            const n = typed === '' || typed === '.' ? 0 : Number(typed)
+            if (n > max) {
+              setText(decimalText(max))
+              onChange(max)
+              return
+            }
+            setText(e.currentTarget.value.replace('.', ','))
+            onChange(n)
+          }}
+        />
+        <span>{suffix}</span>
+      </div>
+    </div>
+  )
+}
 const DEPENDANT_LABELS = ['Aucune', '1 personne', '2 personnes', '3 personnes', '4 personnes', '5 personnes', '6 personnes']
 
 /** Custom dropdown: a button that opens a listbox, fully usable with the keyboard. */

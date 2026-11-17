@@ -86,8 +86,13 @@ describe('assistant context boundary', () => {
     const ostie = context.scenarios[0].contributions.find((c) => c.id === 'ostie')!
     expect(ostie.employee).toBe(0)
     expect(context.scenarios[0].net).toBe(884_500)
+    const half = assistantContext({
+      question: 'Pourquoi ?',
+      scenarios: [{ name: 'Moi', gross: 1_000_000, dependants: 0, ostieEmployee: 0.5, ostieEmployer: 3.5 }],
+    })
+    expect(half.scenarios[0].contributions.find((c) => c.id === 'ostie')!.employee).toBe(5_000)
   })
-  it.each([{ ostieEmployee: -1 }, { ostieEmployee: 101 }, { ostieEmployer: 'x' }])('rejects invalid OSTIE rates %#', (extra) => {
+  it.each([{ ostieEmployee: -1 }, { ostieEmployee: 101 }, { ostieEmployer: 'x' }, { ostieEmployer: 0.123 }])('rejects invalid OSTIE rates %#', (extra) => {
     expect(() =>
       assistantContext({ question: 'a', scenarios: [{ name: 'X', gross: 1_000_000, dependants: 0, ...extra }] }),
     ).toThrow()

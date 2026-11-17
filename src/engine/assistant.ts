@@ -41,7 +41,8 @@ export function assistantContext(value: unknown) {
     if (!optional(s.taxExempt, typeof s.gross === 'number' ? s.gross : 0) || !optional(s.benefitsTaxable, MAX_SALARY))
       throw new Error('Heures supplémentaires exonérées ou avantages invalides.')
     // OSTIE rates in percent, as set in the simulation: bounded, then used on the scale in force.
-    if (!optional(s.ostieEmployee, 100) || !optional(s.ostieEmployer, 100)) throw new Error('Taux OSTIE invalides.')
+    const rate = (n: unknown) => n === undefined || (typeof n === 'number' && n >= 0 && n <= 100 && Math.round(n * 100) / 100 === n)
+    if (!rate(s.ostieEmployee) || !rate(s.ostieEmployer)) throw new Error('Taux OSTIE invalides.')
     const ostie = SCALE.contributions.find((c) => c.id === 'ostie')
     const scale = withRates(
       SCALE,

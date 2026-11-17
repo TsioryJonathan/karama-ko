@@ -82,8 +82,10 @@ describe('extras across the tools', () => {
   })
 })
 
-describe('OSTIE, Sunday and holiday overtime, executives', () => {
+describe('OSTIE, night, Sunday and holiday premiums, executives', () => {
   const ostie = (p: ReturnType<typeof payslip>) => p.result.contributions.find((c) => c.id === 'ostie')!
+  // 1 733 300 Ar a month is 10 000 Ar an hour.
+  const BASE = 1_733_300
 
   it('keeps the scale rates when nothing is changed', () => {
     expect(payslip(1_000_000, 0, NO_EXTRAS).result).toEqual(compute(1_000_000, 0))
@@ -96,54 +98,66 @@ describe('OSTIE, Sunday and holiday overtime, executives', () => {
     expect(p.result.employerCost).toBe(compute(1_000_000).employerCost - 50_000)
   })
 
-  it('OSTIE rates can be edited', () => {
+  it('OSTIE rates can be edited, and may be decimal', () => {
     const p = payslip(1_000_000, 0, { ...NO_EXTRAS, ostieEmployee: 2, ostieEmployer: 4 })
     expect(ostie(p)).toMatchObject({ employee: 20_000, employer: 40_000, employeeRate: 2, employerRate: 4 })
+    const half = payslip(1_000_000, 0, { ...NO_EXTRAS, ostieEmployee: 0.5, ostieEmployer: 3.5 })
+    expect(ostie(half)).toMatchObject({ employee: 5_000, employer: 35_000, employeeRate: 0.5, employerRate: 3.5 })
   })
 
-  it('Sunday and holiday hours have their own premium', () => {
-    const p = payslip(1_733_300, 0, { ...NO_EXTRAS, hours3: 10 })
-    // 10 000 Ar an hour; 10 h at +100 % = 200 000 Ar.
-    expect(p.overtime.pay3).toBe(200_000)
-    expect(p.gross).toBe(1_933_300)
-    expect(p.overtime.exempt).toBe(200_000)
-    const edited = payslip(1_733_300, 0, { ...NO_EXTRAS, hours3: 10, rate3: 60 })
-    expect(edited.overtime.pay3).toBe(160_000)
+  it('night, Sunday and holiday hours add their premium to the base pay (decree 68-172, art. 3 as amended)', () => {
+    const p = payslip(BASE, 0, { ...NO_EXTRAS, nightHours: 10, sundayHours: 8, holidayHours: 5 })
+    // Night +30 % of 100 000 = 30 000; Sunday +40 % of 80 000 = 32 000; holiday +50 % of 50 000 = 25 000.
+    expect(p.premiums).toEqual({ night: 30_000, sunday: 32_000, holiday: 25_000, total: 87_000 })
+    expect(p.gross).toBe(BASE + 87_000)
+    expect(p.overtime.pay).toBe(0)
   })
 
-  it('the 20 exempt hours are counted in order across the three kinds', () => {
-    const p = payslip(1_733_300, 0, { ...NO_EXTRAS, hours1: 10, hours2: 5, hours3: 10 })
-    // 10 h at +30 % = 130 000; 5 h at +50 % = 75 000; then only 5 of the 10 Sunday hours at +100 % = 100 000.
-    expect(p.overtime.exempt).toBe(305_000)
+  it('premium rates can be edited, and may be decimal', () => {
+    expect(payslip(BASE, 0, { ...NO_EXTRAS, nightHours: 10, nightRate: 50 }).premiums.night).toBe(50_000)
+    expect(payslip(BASE, 0, { ...NO_EXTRAS, sundayHours: 8, sundayRate: 37.5 }).premiums.sunday).toBe(30_000)
+    expect(payslip(BASE, 0, { ...NO_EXTRAS, hours1: 10, rate1: 27.5 }).overtime.pay1).toBe(127_500)
   })
 
-  it('an executive gets no overtime, whatever is typed', () => {
-    const p = payslip(1_733_300, 0, { ...NO_EXTRAS, cadre: 1, hours1: 10, hours2: 5, hours3: 5 })
+  it('premiums are wages, not overtime: they do not use the 20 exempt hours', () => {
+    const p = payslip(BASE, 0, { ...NO_EXTRAS, hours1: 10, nightHours: 30 })
+    expect(p.overtime.exempt).toBe(130_000)
+    expect(p.result.taxExempt).toBe(130_000)
+    expect(p.result.gross).toBe(BASE + 130_000 + 90_000)
+  })
+
+  it('an executive gets no overtime, whatever is typed, but the premiums are untouched', () => {
+    const p = payslip(BASE, 0, { ...NO_EXTRAS, cadre: 1, hours1: 10, hours2: 5, nightHours: 10 })
     expect(p.overtime.pay).toBe(0)
     expect(p.overtime.exempt).toBe(0)
-    expect(p.gross).toBe(1_733_300)
-    expect(p.result).toEqual(payslip(1_733_300, 0).result)
+    expect(p.premiums.night).toBe(30_000)
+    expect(p.gross).toBe(BASE + 30_000)
   })
 
   it('shared links and saved plans from before these options stay valid and unchanged', () => {
-    const { hours3, rate3, ostieEmployee, ostieEmployer, cadre, ...before } = NO_EXTRAS
-    void hours3, rate3, ostieEmployee, ostieEmployer, cadre
+    const { nightHours, nightRate, sundayHours, sundayRate, holidayHours, holidayRate, ostieEmployee, ostieEmployer, cadre, ...before } = NO_EXTRAS
+    void [nightHours, nightRate, sundayHours, sundayRate, holidayHours, holidayRate, ostieEmployee, ostieEmployer, cadre]
     expect(validExtras(before)).toBe(true)
     expect(payslip(1_000_000, 0, before as Extras).result).toEqual(compute(1_000_000, 0))
     expect(hasExtras(before as Extras)).toBe(false)
   })
 
-  it('refuses malformed new options', () => {
+  it('accepts decimal rates, refuses malformed new options', () => {
+    expect(validExtras({ ...NO_EXTRAS, ostieEmployee: 0.5, nightRate: 37.5 })).toBe(true)
     expect(validExtras({ ...NO_EXTRAS, cadre: 2 })).toBe(false)
+    expect(validExtras({ ...NO_EXTRAS, cadre: 0.5 })).toBe(false)
     expect(validExtras({ ...NO_EXTRAS, ostieEmployee: 150 })).toBe(false)
-    expect(validExtras({ ...NO_EXTRAS, hours3: 9999 })).toBe(false)
+    expect(validExtras({ ...NO_EXTRAS, nightHours: 9999 })).toBe(false)
+    expect(validExtras({ ...NO_EXTRAS, holidayRate: 500 })).toBe(false)
     expect(validExtras({ ...NO_EXTRAS, ostieEmployer: -1 })).toBe(false)
   })
 
   it('the options count as extras so they travel with the simulation', () => {
     expect(hasExtras(NO_EXTRAS)).toBe(false)
     expect(hasExtras({ ...NO_EXTRAS, ostieEmployee: 0 })).toBe(true)
-    expect(hasExtras({ ...NO_EXTRAS, hours3: 1 })).toBe(true)
+    expect(hasExtras({ ...NO_EXTRAS, nightHours: 1 })).toBe(true)
+    expect(hasExtras({ ...NO_EXTRAS, sundayHours: 1 })).toBe(true)
+    expect(hasExtras({ ...NO_EXTRAS, holidayHours: 1 })).toBe(true)
     expect(hasExtras({ ...NO_EXTRAS, cadre: 1 })).toBe(true)
   })
 })

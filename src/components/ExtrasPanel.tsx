@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { DEFAULT_OSTIE, LEGAL_MONTHLY_HOURS, OVERTIME_EXEMPT_HOURS, hasExtras, NO_EXTRAS, type Extras } from '../engine/pay'
-import { NumberField, SelectField } from '../workspace/Fields'
+import { DEFAULT_OSTIE, DEFAULT_PREMIUM_RATES, LEGAL_MONTHLY_HOURS, OVERTIME_EXEMPT_HOURS, hasExtras, NO_EXTRAS, type Extras } from '../engine/pay'
+import { DecimalField, NumberField, SelectField } from '../workspace/Fields'
 
 /**
  * Everything the base salary does not say: bonuses, overtime and benefits in kind.
@@ -66,25 +66,42 @@ export function ExtrasPanel({
             ) : (
               <>
                 <div className="extras-pair">
-                  <NumberField label="Premières heures" value={extras.hours1} max={300} suffix="h" onChange={(hours1) => set({ hours1 })} />
-                  <NumberField label="Majoration" value={extras.rate1} max={200} suffix="%" onChange={(rate1) => set({ rate1 })} />
+                  <DecimalField label="Premières heures" value={extras.hours1} max={300} suffix="h" onChange={(hours1) => set({ hours1 })} />
+                  <DecimalField label="Majoration" value={extras.rate1} max={200} onChange={(rate1) => set({ rate1 })} />
                 </div>
                 <div className="extras-pair">
-                  <NumberField label="Heures suivantes" value={extras.hours2} max={300} suffix="h" onChange={(hours2) => set({ hours2 })} />
-                  <NumberField label="Majoration" value={extras.rate2} max={200} suffix="%" onChange={(rate2) => set({ rate2 })} />
-                </div>
-                <div className="extras-pair">
-                  <NumberField label="Dimanches et jours fériés" value={extras.hours3} max={300} suffix="h" onChange={(hours3) => set({ hours3 })} />
-                  <NumberField label="Majoration" value={extras.rate3} max={200} suffix="%" onChange={(rate3) => set({ rate3 })} />
+                  <DecimalField label="Heures suivantes" value={extras.hours2} max={300} suffix="h" onChange={(hours2) => set({ hours2 })} />
+                  <DecimalField label="Majoration" value={extras.rate2} max={200} onChange={(rate2) => set({ rate2 })} />
                 </div>
                 <p className="extras-note">
                   Heure normale = salaire de base ÷ {String(LEGAL_MONTHLY_HOURS).replace('.', ',')} h (Code du travail, art. 75). Les
-                  majorations sont fixées par décret et par convention : 30 % puis 50 % est l’usage courant, 100 % pour les dimanches et
-                  jours fériés un taux fréquent. Ce sont des repères à vérifier dans votre contrat ou votre convention. Jusqu’à{' '}
-                  {OVERTIME_EXEMPT_HOURS} heures, dans l’ordre ci-dessus, leur paiement est exonéré d’IRSA (CGI, art. 01.03.03, 9°).
+                  majorations sont fixées par décret et par convention : 30 % puis 50 % est l’usage courant, à adapter à votre cas.
+                  Jusqu’à {OVERTIME_EXEMPT_HOURS} heures, leur paiement est exonéré d’IRSA (CGI, art. 01.03.03, 9°).
                 </p>
               </>
             )}
+          </fieldset>
+          <fieldset>
+            <legend>Nuit, dimanche, jours fériés</legend>
+            <div className="extras-pair">
+              <DecimalField label="Heures de nuit" value={extras.nightHours} max={300} suffix="h" onChange={(nightHours) => set({ nightHours })} />
+              <DecimalField label="Majoration" value={extras.nightRate} max={200} onChange={(nightRate) => set({ nightRate })} />
+            </div>
+            <div className="extras-pair">
+              <DecimalField label="Heures le dimanche" value={extras.sundayHours} max={300} suffix="h" onChange={(sundayHours) => set({ sundayHours })} />
+              <DecimalField label="Majoration" value={extras.sundayRate} max={200} onChange={(sundayRate) => set({ sundayRate })} />
+            </div>
+            <div className="extras-pair">
+              <DecimalField label="Heures un jour férié" value={extras.holidayHours} max={300} suffix="h" onChange={(holidayHours) => set({ holidayHours })} />
+              <DecimalField label="Majoration" value={extras.holidayRate} max={200} onChange={(holidayRate) => set({ holidayRate })} />
+            </div>
+            <p className="extras-note">
+              Heures comprises dans votre horaire normal : seule la majoration s’ajoute au salaire. Minimum légal : nuit de 22 h à 5 h{' '}
+              {DEFAULT_PREMIUM_RATES.night} % (50 % si elle est occasionnelle), dimanche de jour {DEFAULT_PREMIUM_RATES.sunday} %, jour
+              férié {DEFAULT_PREMIUM_RATES.holiday} % (décret 68-172, art. 3, modifié par le décret 72-226). Ces majorations ne s’ajoutent pas
+              entre elles. Pour des heures qui sont aussi des heures supplémentaires, additionnez les taux dans les lignes ci-dessus. Le 1er
+              mai et le 14 octobre ont une indemnité à part, non calculée ici.
+            </p>
           </fieldset>
           <fieldset>
             <legend>Avantages en nature</legend>
@@ -101,8 +118,8 @@ export function ExtrasPanel({
           <fieldset>
             <legend>OSTIE</legend>
             <div className="extras-pair">
-              <NumberField label="Part du salarié" value={extras.ostieEmployee} max={100} suffix="%" onChange={(ostieEmployee) => set({ ostieEmployee })} />
-              <NumberField label="Part de l’employeur" value={extras.ostieEmployer} max={100} suffix="%" onChange={(ostieEmployer) => set({ ostieEmployer })} />
+              <DecimalField label="Part du salarié" value={extras.ostieEmployee} max={100} onChange={(ostieEmployee) => set({ ostieEmployee })} />
+              <DecimalField label="Part de l’employeur" value={extras.ostieEmployer} max={100} onChange={(ostieEmployer) => set({ ostieEmployer })} />
             </div>
             <p className="extras-note">
               Taux du barème : {DEFAULT_OSTIE.employee} % et {DEFAULT_OSTIE.employer} %. Toutes les entreprises n’adhèrent pas à l’OSTIE :

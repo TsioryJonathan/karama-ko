@@ -53,7 +53,7 @@ test('bonuses, overtime and benefits change the result, and survive a reload', a
   await expect(page.getByLabel('Primes et gratifications du mois')).toHaveValue(digits(200_000))
 })
 
-test('OSTIE can be left out, Sunday hours count, an executive has no overtime', async ({ page }) => {
+test('OSTIE can be left out or set to a decimal rate, night hours count, an executive has no overtime', async ({ page }) => {
   await page.goto('/#calculateur')
   await page.getByLabel('Salaire brut, par mois').fill('1000000')
   await expect(page.locator('#resultat')).toContainText(digits(876_500))
@@ -66,10 +66,16 @@ test('OSTIE can be left out, Sunday hours count, an executive has no overtime', 
   await page.reload()
   await expect(page.getByLabel('Part du salarié')).toHaveValue('0')
   await expect(page.locator('#resultat')).toContainText(digits(884_500))
-  // Sunday and holiday hours are paid with their own premium.
-  await page.getByLabel('Dimanches et jours fériés').fill('10')
-  await expect(page.locator('#resultat')).toContainText('Heures supplémentaires')
+  // A decimal rate, typed with a comma, is kept in the link.
+  await page.getByLabel('Part du salarié').fill('0,5')
+  await expect(page.getByLabel('Part du salarié')).toHaveValue('0,5')
+  expect(page.url()).toContain('ostie_s=0.5')
+  // Night hours add their premium, which is not overtime.
+  await page.getByLabel('Heures de nuit').fill('10')
+  await expect(page.locator('#resultat')).toContainText('Majorations nuit, dimanche, fériés')
   // An executive: the overtime fields give way to an explanation and the hours stop counting.
+  await page.getByLabel('Premières heures').fill('10')
+  await expect(page.locator('#resultat')).toContainText('Heures supplémentaires')
   const status = page.getByRole('combobox', { name: /Catégorie du poste/ })
   await status.focus()
   await page.keyboard.press('ArrowDown')
@@ -78,6 +84,7 @@ test('OSTIE can be left out, Sunday hours count, an executive has no overtime', 
   await expect(status).toContainText('Cadre ou hors catégorie')
   await expect(page.getByText('n’a en principe pas d’heures supplémentaires')).toBeVisible()
   await expect(page.locator('#resultat')).not.toContainText('Heures supplémentaires')
+  await expect(page.locator('#resultat')).toContainText('Majorations nuit, dimanche, fériés')
 })
 
 test('the link of a calculation reopens it', async ({ page }) => {
