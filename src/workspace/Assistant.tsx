@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { payslip, hasExtras } from '../engine/pay'
+import { payslip, hasExtras, NO_EXTRAS } from '../engine/pay'
 import { parseIntent, type Intent } from '../engine/intent'
 import type { Scenario } from '../engine/planning'
 import { formatAr } from '../lib/format'
@@ -79,7 +79,12 @@ export function Assistant({
       name: s.name,
       gross: pay ? pay.gross : s.gross,
       dependants: s.dependants,
-      ...(pay && { taxExempt: pay.overtime.exempt, benefitsTaxable: pay.benefits.total }),
+      ...(pay && {
+        taxExempt: pay.overtime.exempt,
+        benefitsTaxable: pay.benefits.total,
+        ostieEmployee: { ...NO_EXTRAS, ...s.extras }.ostieEmployee,
+        ostieEmployer: { ...NO_EXTRAS, ...s.extras }.ostieEmployer,
+      }),
     }
   })
   const current = JSON.stringify(context)

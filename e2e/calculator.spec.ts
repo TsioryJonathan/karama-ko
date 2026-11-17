@@ -53,6 +53,33 @@ test('bonuses, overtime and benefits change the result, and survive a reload', a
   await expect(page.getByLabel('Primes et gratifications du mois')).toHaveValue(digits(200_000))
 })
 
+test('OSTIE can be left out, Sunday hours count, an executive has no overtime', async ({ page }) => {
+  await page.goto('/#calculateur')
+  await page.getByLabel('Salaire brut, par mois').fill('1000000')
+  await expect(page.locator('#resultat')).toContainText(digits(876_500))
+  await page.getByRole('button', { name: /Primes, heures supplémentaires/ }).click()
+  // The company pays no OSTIE: no contribution, a higher net, and the choice survives a reload.
+  await page.getByLabel('Part du salarié').fill('0')
+  await page.getByLabel('Part de l’employeur').fill('0')
+  await expect(page.locator('#resultat')).toContainText(digits(884_500))
+  expect(page.url()).toContain('ostie_s=0')
+  await page.reload()
+  await expect(page.getByLabel('Part du salarié')).toHaveValue('0')
+  await expect(page.locator('#resultat')).toContainText(digits(884_500))
+  // Sunday and holiday hours are paid with their own premium.
+  await page.getByLabel('Dimanches et jours fériés').fill('10')
+  await expect(page.locator('#resultat')).toContainText('Heures supplémentaires')
+  // An executive: the overtime fields give way to an explanation and the hours stop counting.
+  const status = page.getByRole('combobox', { name: /Catégorie du poste/ })
+  await status.focus()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Enter')
+  await expect(status).toContainText('Cadre ou hors catégorie')
+  await expect(page.getByText('n’a en principe pas d’heures supplémentaires')).toBeVisible()
+  await expect(page.locator('#resultat')).not.toContainText('Heures supplémentaires')
+})
+
 test('the link of a calculation reopens it', async ({ page }) => {
   await page.goto('/?brut=2000000&pac=1#calculateur')
   await expect(page.getByLabel('Salaire brut, par mois')).toHaveValue(digits(2_000_000))

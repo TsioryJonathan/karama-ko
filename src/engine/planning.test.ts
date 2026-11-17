@@ -78,6 +78,20 @@ describe('assistant context boundary', () => {
     })
     expect(withBenefits.scenarios[0].irsa).toBe(compute(1_000_000, 0, SCALE, { benefitsTaxable: 100_000 }).irsa)
   })
+  it('recomputes with the OSTIE rates of the simulation', () => {
+    const context = assistantContext({
+      question: 'Pourquoi ?',
+      scenarios: [{ name: 'Moi', gross: 1_000_000, dependants: 0, ostieEmployee: 0, ostieEmployer: 0 }],
+    })
+    const ostie = context.scenarios[0].contributions.find((c) => c.id === 'ostie')!
+    expect(ostie.employee).toBe(0)
+    expect(context.scenarios[0].net).toBe(884_500)
+  })
+  it.each([{ ostieEmployee: -1 }, { ostieEmployee: 101 }, { ostieEmployer: 'x' }])('rejects invalid OSTIE rates %#', (extra) => {
+    expect(() =>
+      assistantContext({ question: 'a', scenarios: [{ name: 'X', gross: 1_000_000, dependants: 0, ...extra }] }),
+    ).toThrow()
+  })
   it.each([
     { taxExempt: -1 },
     { taxExempt: 1_500_000 },

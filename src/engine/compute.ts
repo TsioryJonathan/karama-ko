@@ -89,6 +89,11 @@ export const SCALE_2026 = scale2026 as Scale
 /** The scale in force today: what every tool uses. */
 export const SCALE: Scale = scaleInForce()
 
+/** The same scale with other rates for one contribution, e.g. a company that pays no OSTIE. */
+export function withRates(scale: Scale, id: string, employee: number, employer: number): Scale {
+  return { ...scale, contributions: scale.contributions.map((c) => (c.id === id ? { ...c, employee, employer } : c)) }
+}
+
 export function contributionCeiling(scale: Scale): number {
   return scale.minimumWage * scale.ceilingMultiple
 }

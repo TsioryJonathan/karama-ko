@@ -49,8 +49,8 @@ export function ResultCard({
   const segments = [
     { name: 'Salaire net', amount: r?.net ?? 0, color: 'bg-accent' },
     { name: 'IRSA, impôt', amount: r?.irsa ?? 0, color: 'bg-ink' },
-    { name: `CNaPS, ${formatRate(1)}`, amount: share('cnaps')?.employee ?? 0, color: 'bg-control' },
-    { name: `OSTIE, ${formatRate(1)}`, amount: share('ostie')?.employee ?? 0, color: 'bg-control/45' },
+    { name: `CNaPS, ${formatRate(share('cnaps')?.employeeRate ?? 1)}`, amount: share('cnaps')?.employee ?? 0, color: 'bg-control' },
+    { name: `OSTIE, ${formatRate(share('ostie')?.employeeRate ?? 1)}`, amount: share('ostie')?.employee ?? 0, color: 'bg-control/45' },
   ]
 
   return (
@@ -136,7 +136,7 @@ export function ResultCard({
               return (
                 <Row
                   key={c.id}
-                  label={`${c.name}, ${formatRate(c.employer)}`}
+                  label={`${c.name}, ${formatRate(line?.employerRate ?? c.employer)}`}
                   value={line ? `+${formatNumber(line.employer)}` : EMPTY}
                 />
               )

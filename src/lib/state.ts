@@ -1,4 +1,4 @@
-import { NO_EXTRAS, type Extras } from '../engine/pay'
+import { EXTRA_LIMITS, NO_EXTRAS, type Extras } from '../engine/pay'
 
 export type Mode = 'gross' | 'net'
 export type View = 'employee' | 'employer'
@@ -24,12 +24,16 @@ const EXTRA_KEYS: Record<keyof Extras, string> = {
   rate1: 'maj1',
   hours2: 'hs2',
   rate2: 'maj2',
+  hours3: 'hs3',
+  rate3: 'maj3',
+  ostieEmployee: 'ostie_s',
+  ostieEmployer: 'ostie_e',
+  cadre: 'cadre',
   housing: 'loyer',
   vehicle: 'voiture',
   phone: 'tel',
   other: 'avantage',
 }
-const HOUR_LIMIT = 300
 
 
 const toInt = (v: string | null, max: number) => {
@@ -44,7 +48,7 @@ export function parse(search: string): State | null {
   const amount = toInt(p.get(mode === 'net' ? 'net' : 'brut'), 9_999_999_999)
   const extras = { ...NO_EXTRAS }
   for (const key of Object.keys(EXTRA_KEYS) as (keyof Extras)[]) {
-    const limit = key.startsWith('hours') ? HOUR_LIMIT : key.startsWith('rate') ? 200 : 9_999_999_999
+    const limit = EXTRA_LIMITS[key]
     const value = toInt(p.get(EXTRA_KEYS[key]), limit)
     if (value !== null) extras[key] = value
   }

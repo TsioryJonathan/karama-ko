@@ -1,4 +1,4 @@
-import { compute, SCALE } from './compute'
+import { compute, SCALE, withRates } from './compute'
 import { MAX_SALARY } from './planning'
 
 /** What the visitor was doing when they asked. Unknown values are ignored, never forwarded. */
@@ -32,12 +32,23 @@ export function assistantContext(value: unknown) {
       dependants?: unknown
       taxExempt?: unknown
       benefitsTaxable?: unknown
+      ostieEmployee?: unknown
+      ostieEmployer?: unknown
     }
     // Exempt overtime and taxable benefits are inputs of the calculation, not results: they are bounded here
     // and the whole payslip is recomputed on the server.
     const optional = (n: unknown, max: number) => n === undefined || (typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= max)
     if (!optional(s.taxExempt, typeof s.gross === 'number' ? s.gross : 0) || !optional(s.benefitsTaxable, MAX_SALARY))
       throw new Error('Heures supplémentaires exonérées ou avantages invalides.')
+    // OSTIE rates in percent, as set in the simulation: bounded, then used on the scale in force.
+    if (!optional(s.ostieEmployee, 100) || !optional(s.ostieEmployer, 100)) throw new Error('Taux OSTIE invalides.')
+    const ostie = SCALE.contributions.find((c) => c.id === 'ostie')
+    const scale = withRates(
+      SCALE,
+      'ostie',
+      (s.ostieEmployee as number | undefined) ?? ostie?.employee ?? 0,
+      (s.ostieEmployer as number | undefined) ?? ostie?.employer ?? 0,
+    )
     if (
       typeof s.gross !== 'number' ||
       !Number.isInteger(s.gross) ||
@@ -53,7 +64,7 @@ export function assistantContext(value: unknown) {
       throw new Error('Montants ou personnes à charge invalides.')
     return {
       name: s.name,
-      ...compute(s.gross, s.dependants, SCALE, {
+      ...compute(s.gross, s.dependants, scale, {
         taxExempt: s.taxExempt as number | undefined,
         benefitsTaxable: s.benefitsTaxable as number | undefined,
       }),
