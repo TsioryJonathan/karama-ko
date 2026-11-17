@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createApi } from './api.mjs'
-import { createMemoryStore, createMetrics, createThrottle, hasAdminToken, isCountable, summarize } from './metrics.mjs'
+import { createMemoryStore, createMetrics, createThrottle, hasAdminToken, isCountable, summarize, usesNeonHttp } from './metrics.mjs'
 
 const TOKEN = 'a-long-test-password'
 const at = (iso) => () => new Date(iso)
@@ -146,4 +146,11 @@ test('the assistant outcomes are counted, never the question', async () => {
   const { assistant } = await metrics.summary(1)
   assert.deepEqual(assistant, { asked: 2, answered: 0, refused: 1, failed: 1, avgMs: 0 })
   assert.equal(JSON.stringify(await metrics.summary(1)).includes('python'), false)
+})
+
+test('Neon is reached over HTTP, any other Postgres over a normal connection', () => {
+  assert.equal(usesNeonHttp('postgresql://u:p@ep-cool-123-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require'), true)
+  assert.equal(usesNeonHttp('postgres://karama:karama@db:5432/karama'), false)
+  assert.equal(usesNeonHttp('postgres://u:p@localhost/db'), false)
+  assert.equal(usesNeonHttp('not a url'), false)
 })

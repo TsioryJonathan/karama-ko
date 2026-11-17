@@ -1,0 +1,23 @@
+# Only what the build needs goes into the image context.
+.git
+.github
+node_modules
+dist
+dist-server
+dev-dist
+test-results
+playwright-report
+.vercel
+.env
+.env.*
+!.env.example
+codex-session-*.md
+2026-*.txt
+# Not needed to build or run
+e2e
+docs/screenshots
+*.md
+!README.md
+Dockerfile
+compose.yaml
+.dockerignore

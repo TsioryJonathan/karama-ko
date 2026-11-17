@@ -1,0 +1,53 @@
+# The whole stack on one machine: the app, and a Postgres for the anonymous counters of the dashboard.
+#   ADMIN_TOKEN=a-long-password docker compose up --build
+# Site: http://localhost:8787 · Dashboard: http://localhost:8787/admin
+# Assistant keys (optional) go in a .env file, see .env.example.
+name: karama
+
+services:
+  app:
+    build: .
+    image: karama-ko:local
+    init: true
+    restart: unless-stopped
+    # Reachable from this machine only; put a reverse proxy with HTTPS in front to expose it.
+    ports:
+      - '127.0.0.1:8787:8787'
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # These win over anything in .env.
+      DATABASE_URL: postgres://karama:${POSTGRES_PASSWORD:-karama}@db:5432/karama
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?Set ADMIN_TOKEN, the password of the dashboard, in .env or in the shell}
+    depends_on:
+      db:
+        condition: service_healthy
+    # The server only reads its files and writes nothing: no need for a writable filesystem or privileges.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: karama
+      POSTGRES_USER: karama
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-karama}
+    volumes:
+      - metrics-data:/var/lib/postgresql/data
+      # Creates the counters table the first time the database starts.
+      - ./docs/metrics.sql:/docker-entrypoint-initdb.d/metrics.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U karama -d karama']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  metrics-data:

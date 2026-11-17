@@ -52,6 +52,39 @@ export async function createNeonStore(url) {
   }
 }
 
+/** Plain Postgres: the Docker setup, or any server that is not Neon. */
+export async function createPgStore(url) {
+  const { default: pg } = await import('pg')
+  const pool = new pg.Pool({ connectionString: url, max: 3 })
+  return {
+    async add(day, kind, name, ms = 0) {
+      await pool.query(
+        `INSERT INTO metrics (day, kind, name, count, ms) VALUES ($1, $2, $3, 1, $4)
+         ON CONFLICT (day, kind, name) DO UPDATE SET count = metrics.count + 1, ms = metrics.ms + EXCLUDED.ms`,
+        [day, kind, name, ms],
+      )
+    },
+    async since(day) {
+      const { rows } = await pool.query(
+        `SELECT day::text AS day, kind, name, count::float8 AS count, ms::float8 AS ms
+         FROM metrics WHERE day >= $1 ORDER BY day`,
+        [day],
+      )
+      return rows
+    },
+  }
+}
+
+/** Neon is reached over HTTP, which suits short-lived functions; any other Postgres over a normal connection. */
+export const usesNeonHttp = (url) => {
+  try {
+    return new URL(url).hostname.endsWith('.neon.tech')
+  } catch {
+    return false
+  }
+}
+export const createStore = (url) => (usesNeonHttp(url) ? createNeonStore(url) : createPgStore(url))
+
 /** Rows → what the dashboard shows. Days without any visit are kept, at zero, so the chart has no gap. */
 export function summarize(rows, days, today = new Date()) {
   const list = Array.from({ length: days }, (_, i) => isoDay(new Date(today.getTime() - (days - 1 - i) * DAY)))
@@ -97,7 +130,7 @@ export function createMetrics({ env = process.env, store, now = () => new Date()
   const memory = env.METRICS_MEMORY === '1' ? (store ?? createMemoryStore()) : store
   const enabled = Boolean(memory || env.DATABASE_URL)
   let pending
-  const open = () => (pending ??= Promise.resolve(memory ?? createNeonStore(env.DATABASE_URL)))
+  const open = () => (pending ??= Promise.resolve(memory ?? createStore(env.DATABASE_URL)))
   return {
     enabled,
     /** Never throws: a counter that fails must not break the page or the assistant. */

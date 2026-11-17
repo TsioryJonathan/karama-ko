@@ -1,0 +1,93 @@
+name: Docker
+
+# Builds the image and runs it, on GitHub's runners: nothing is built on a developer's machine to know that it works.
+# Nothing is published: the image is only built and tested.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: Build the image and run it
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: karama-ko:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Start the container and wait for its healthcheck
+        run: |
+          docker run -d --name karama -p 8787:8787 karama-ko:ci
+          for i in $(seq 1 20); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' karama)
+            [ "$status" = healthy ] && exit 0
+            sleep 3
+          done
+          echo "Container is not healthy (status: $status)"
+          docker logs karama
+          exit 1
+      - name: The site and the API answer
+        run: |
+          code() { curl -s -o /dev/null -w '%{http_code}' "$1"; }
+          curl -fsS http://localhost:8787/api/health
+          echo
+          [ "$(code http://localhost:8787/)" = 200 ]
+          [ "$(code http://localhost:8787/admin)" = 200 ]
+          [ "$(code http://localhost:8787/pas-une-page)" = 404 ]
+          # Counters are off without a database: the page is told the event was not kept.
+          [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"kind":"visit","name":"site"}' http://localhost:8787/api/track)" = 202 ]
+      - name: The container does not run as root
+        run: |
+          [ "$(docker exec karama id -u)" != 0 ]
+      - name: Stops at once
+        run: |
+          start=$(date +%s)
+          docker stop karama
+          [ $(( $(date +%s) - start )) -lt 5 ]
+      - if: failure()
+        run: docker logs karama || true
+
+  stack:
+    name: The stack with Postgres (compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ADMIN_TOKEN: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the app and its database, wait until both are healthy
+        run: docker compose up -d --build --wait --wait-timeout 180
+      - name: A counter goes in the database and comes out in the dashboard
+        run: |
+          [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"kind":"tool","name":"fin"}' http://localhost:8787/api/track)" = 204 ]
+          # The dashboard refuses a wrong password and shows the counter with the right one.
+          [ "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer wrong' http://localhost:8787/api/metrics)" = 401 ]
+          curl -fsS -H "Authorization: Bearer $ADMIN_TOKEN" 'http://localhost:8787/api/metrics?days=7' \
+            | jq -e '.tools[] | select(.name == "fin") | .count == 1'
+          # It is really in Postgres, not in memory.
+          docker compose exec -T db psql -U karama -d karama -tAc "select count from metrics where kind = 'tool' and name = 'fin'" | grep -qx 1
+      - name: The counters survive a restart of the app
+        run: |
+          docker compose restart app
+          docker compose up -d --wait --wait-timeout 60
+          curl -fsS -H "Authorization: Bearer $ADMIN_TOKEN" 'http://localhost:8787/api/metrics?days=7' \
+            | jq -e '.tools[] | select(.name == "fin") | .count == 1'
+      - if: failure()
+        run: docker compose logs
+      - if: always()
+        run: docker compose down -v

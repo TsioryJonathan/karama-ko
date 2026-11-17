@@ -114,6 +114,16 @@ Limits (`AI_RATE_LIMIT_PER_MINUTE`=5, `AI_RATE_LIMIT_PER_IP_DAY`=20, `AI_DAILY_L
 4. Unknown addresses get `404.html` with a 404 status; the app draws the page.
 5. Dashboard (optional): create a Postgres database (Neon), run `docs/metrics.sql` on it, then set `DATABASE_URL` and `ADMIN_TOKEN`. The dashboard is at `/#admin`; it asks for the `ADMIN_TOKEN`. Without both variables nothing is counted and the dashboard says it is not configured. `METRICS_MEMORY=1` tries it without a database (counters lost on restart).
 
+### Docker
+
+```sh
+docker build -t karama-ko .
+docker run --rm -p 8787:8787 karama-ko                         # site + API, port 8787
+ADMIN_TOKEN=a-long-password docker compose up --build          # app + Postgres for the dashboard counters
+```
+
+The image is multi-stage (build tools stay behind), runs as a non-root user under `tini`, and has a healthcheck on `/api/health`. `compose.yaml` adds a Postgres that creates the counters table on first start (`docs/metrics.sql`), keeps its data in a volume, and runs the app with a read-only filesystem and no capabilities; it listens on `127.0.0.1` only. The dashboard is at `/admin`. Assistant keys go in a `.env` file. The *Docker* workflow builds the image on GitHub, runs it, and checks the whole stack (a counter goes into Postgres, comes out in the dashboard, and survives a restart); nothing is published.
+
 ### Your own server
 
 ```sh
