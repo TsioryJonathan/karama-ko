@@ -47,7 +47,8 @@ export function createApi({
       if (request.method !== 'POST') return reply(405, { error: 'Méthode non autorisée.' }, { Allow: 'POST' })
       const origin = request.headers.get('origin')
       if (origin && !allowedOrigins(request).includes(origin)) return reply(403, { error: 'Origine non autorisée.' })
-      if (!metrics.enabled) return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } })
+      // 202: received but not kept, so the page does not mark the event as reported and tries again later.
+      if (!metrics.enabled) return new Response(null, { status: 202, headers: { 'Cache-Control': 'no-store' } })
       if (!trackThrottle(ip)) return reply(429, { error: 'Trop de demandes.' }, { 'Retry-After': '60' })
       const raw = new Uint8Array(await request.arrayBuffer())
       if (raw.length > MAX_TRACK_BODY) return reply(413, { error: 'Demande trop volumineuse.' })

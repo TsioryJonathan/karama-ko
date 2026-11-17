@@ -29,12 +29,33 @@ describe('anonymous counters', () => {
     expect(init.credentials).toBeUndefined()
   })
 
-  it('does not report again after a reload in the same tab', () => {
+  it('does not report again after a reload in the same tab', async () => {
     const fetchMock = stubBrowser()
     track('visit', 'site')
+    await new Promise((resolve) => setTimeout(resolve))
     resetTracking() // a reload empties the page's memory, not the tab's storage
     track('visit', 'site')
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('tries again when the server did not keep the event', async () => {
+    const fetchMock = stubBrowser()
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 202 }))
+    track('tool', 'fin')
+    await new Promise((resolve) => setTimeout(resolve))
+    track('tool', 'fin')
+    await new Promise((resolve) => setTimeout(resolve))
+    track('tool', 'fin')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('tries again after a network failure', async () => {
+    const fetchMock = stubBrowser()
+    fetchMock.mockRejectedValueOnce(new Error('offline'))
+    track('tool', 'annee')
+    await new Promise((resolve) => setTimeout(resolve))
+    track('tool', 'annee')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
   it('respects Do Not Track and Global Privacy Control', () => {

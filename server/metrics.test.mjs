@@ -88,14 +88,14 @@ test('/api/track accepts a known event, refuses the rest', async () => {
   assert.equal((await a.track(request('/api/track', { method: 'POST', body: big }))).status, 413)
 })
 
-test('/api/track is throttled per visitor and silent when metrics are off', async () => {
+test('/api/track is throttled per visitor, and answers 202 (not kept) when metrics are off', async () => {
   const { api: a } = api({ trackThrottle: createThrottle(2) })
   const send = () => a.track(request('/api/track', { method: 'POST', body: { kind: 'visit', name: 'site' } }), '1.2.3.4')
   assert.equal((await send()).status, 204)
   assert.equal((await send()).status, 204)
   assert.equal((await send()).status, 429)
   const off = createApi({ env: {}, providers: [], metrics: createMetrics({ env: {} }) })
-  assert.equal((await off.track(request('/api/track', { method: 'POST', body: { kind: 'visit', name: 'site' } }))).status, 204)
+  assert.equal((await off.track(request('/api/track', { method: 'POST', body: { kind: 'visit', name: 'site' } }))).status, 202)
 })
 
 test('/api/metrics needs the password', async () => {

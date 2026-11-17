@@ -5,7 +5,6 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "cleanUrls": true,
-  "rewrites": [{ "source": "/admin", "destination": "/index.html" }],
   "functions": {
     "api/*.mjs": { "includeFiles": "dist-server/**", "maxDuration": 30 }
   },

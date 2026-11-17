@@ -23,20 +23,30 @@ export function track(kind: TrackKind, name: string): void {
     if (navigator.onLine === false) return
     const key = `${kind}:${name}`
     if (reported.has(key)) return
-    reported.add(key)
+    const storageKey = `karama:seen:${key}`
     try {
       // Once per tab session, even after a reload.
-      if (sessionStorage.getItem(`karama:seen:${key}`)) return
-      sessionStorage.setItem(`karama:seen:${key}`, '1')
+      if (sessionStorage.getItem(storageKey)) return
     } catch {
-      /* storage blocked: the in-memory guard above still limits it to once per page load */
+      /* storage blocked: the in-memory guard still limits it to once per page load */
     }
+    reported.add(key)
+    // Only a stored event (204) is remembered: if the server was unreachable or not set up, it is tried again.
     void fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind, name }),
       keepalive: true,
-    }).catch(() => {})
+    })
+      .then((response) => {
+        if (response.status !== 204) return void reported.delete(key)
+        try {
+          sessionStorage.setItem(storageKey, '1')
+        } catch {
+          /* storage blocked */
+        }
+      })
+      .catch(() => reported.delete(key))
   } catch {
     /* a counter must never break the page */
   }

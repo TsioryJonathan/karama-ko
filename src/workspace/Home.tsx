@@ -5,6 +5,7 @@ import { ThemeToggle } from '../components/ThemeToggle'
 import { useCountUp } from '../components/useCountUp'
 import { compute } from '../engine/compute'
 import { formatAr, formatNumber, formatPercent } from '../lib/format'
+import { track } from '../lib/track'
 import { BanknoteHero } from './BanknoteHero'
 import { NumberField } from './Fields'
 import { SiteFooter } from './SiteFooter'
@@ -30,6 +31,11 @@ const QUICK_AMOUNTS = [500_000, 1_000_000, 2_000_000, 5_000_000]
 /** The first tool, usable in place: one amount in, the net out. */
 function QuickCalculator() {
   const [gross, setGross] = useState(1_500_000)
+  // Typing an amount here is using the calculator: counted once, like opening it from the menu.
+  const change = (amount: number) => {
+    setGross(amount)
+    track('tool', 'calculateur')
+  }
   const result = compute(gross, 0)
   const net = useCountUp(result.net)
   const parts = [
@@ -42,10 +48,10 @@ function QuickCalculator() {
       <div className="quick-entry">
         <h2 id="quick-title">Combien vous <span>reste-t-il&nbsp;?</span></h2>
         <p>Saisissez votre brut mensuel. Le net s’affiche tout de suite, au barème d’octobre 2026.</p>
-        <NumberField label="Votre salaire brut, par mois" value={gross} onChange={setGross} />
+        <NumberField label="Votre salaire brut, par mois" value={gross} onChange={change} />
         <div className="quick-amounts" role="group" aria-label="Exemples de salaire brut">
           {QUICK_AMOUNTS.map((amount) => (
-            <button key={amount} type="button" aria-pressed={gross === amount} onClick={() => setGross(amount)}>
+            <button key={amount} type="button" aria-pressed={gross === amount} onClick={() => change(amount)}>
               {formatNumber(amount)}
             </button>
           ))}
