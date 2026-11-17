@@ -25,7 +25,8 @@ export default defineConfig({
   ],
   // The production build, served by the production server: what visitors get.
   webServer: {
-    command: `pnpm build && PORT=${PORT} node server/index.mjs`,
+    // Counters in memory and a known password, so the dashboard can be tried without a database.
+    command: `pnpm build && PORT=${PORT} METRICS_MEMORY=1 ADMIN_TOKEN=e2e-password node server/index.mjs`,
     url: `http://127.0.0.1:${PORT}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

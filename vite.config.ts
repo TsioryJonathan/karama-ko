@@ -52,10 +52,20 @@ const devApi = (): Plugin => ({
     })
     server.middlewares.use('/api', async (req, res, next) => {
       const path = new URL(req.url ?? '/', 'http://localhost').pathname
-      if (path !== '/health' && path !== '/assistant') return next()
+      if (!['/health', '/assistant', '/track', '/metrics'].includes(path)) return next()
       const request = await readRequest(req)
       if (!request) return sendResponse(res, Response.json({ error: 'Demande trop volumineuse.' }, { status: 413 }))
-      await sendResponse(res, path === '/health' ? await api.health() : await api.assistant(request, visitorAddress(req)))
+      const ip = visitorAddress(req)
+      await sendResponse(
+        res,
+        path === '/health'
+          ? await api.health()
+          : path === '/track'
+            ? await api.track(request, ip)
+            : path === '/metrics'
+              ? await api.metrics(request, ip)
+              : await api.assistant(request, ip),
+      )
     })
     if (!api.configured) server.config.logger.info('  Assistant: aucune clé dans .env, il restera désactivé.')
     else server.config.logger.info('  Assistant: prêt (clés lues dans .env).')

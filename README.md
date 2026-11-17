@@ -108,10 +108,11 @@ Limits (`AI_RATE_LIMIT_PER_MINUTE`=5, `AI_RATE_LIMIT_PER_IP_DAY`=20, `AI_DAILY_L
 
 ### Vercel
 
-1. Import the repository. `vercel.json` sets the build (`pnpm build`), the output (`dist`), the security headers and the two functions (`api/assistant.mjs`, `api/health.mjs`).
+1. Import the repository. `vercel.json` sets the build (`pnpm build`), the output (`dist`), the security headers and the functions (`api/assistant.mjs`, `api/health.mjs`, `api/track.mjs`, `api/metrics.mjs`).
 2. Add the keys from `.env.example` in *Settings → Environment Variables*. `APP_ORIGIN` is not needed (same-origin requests are accepted).
 3. `SITE_URL` is optional: the production domain feeds the canonical link, the share previews and `sitemap.xml`. Set it with a custom domain.
 4. Unknown addresses get `404.html` with a 404 status; the app draws the page.
+5. Dashboard (optional): create a Postgres database (Neon), run `docs/metrics.sql` on it, then set `DATABASE_URL` and `ADMIN_TOKEN`. The dashboard is at `/#admin`; it asks for the `ADMIN_TOKEN`. Without both variables nothing is counted and the dashboard says it is not configured. `METRICS_MEMORY=1` tries it without a database (counters lost on restart).
 
 ### Your own server
 
@@ -158,11 +159,12 @@ Reference case: 1 000 000 Ar gross, no dependant → **876 500 Ar net**.
 
 Also implemented: overtime paid at the hourly rate (monthly salary ÷ 173,33 h, Code du travail art. 75) with premiums you can edit and the first 20 hours exempt from IRSA (CGI art. 01.03.03, 9°); bonuses taxed as salary; benefits in kind valued per CGI art. 01.03.08 (housing 50 % of rent capped at 25 % of the base salary, car and phone 15 %, the rest at real value); severance 10 days per year capped at six months (Code du travail art. 28) and leave at 2,5 days per month (art. 86).
 
-What it cannot know: notice periods (set by collective agreement or decree: you enter them), overtime premiums (decree or agreement), the social treatment of benefits in kind and of end-of-contract payments, special regimes, absences and reimbursements. Only the scale in force is implemented. The result is an estimate, not a payslip or a compliance certificate.
+What it cannot know: notice periods (set by collective agreement or decree: you enter them), overtime premiums (decree or agreement; the night, Sunday and holiday minimums of décret 68-172 as amended by 72-226 are the defaults), the social treatment of benefits in kind and of end-of-contract payments, special regimes, absences and reimbursements. Only the scale in force is implemented. The result is an estimate, not a payslip or a compliance certificate.
 
 ## Privacy
 
-- Calculations happen in the browser. Saved simulations, the draft, the last calculation and the theme live in `localStorage`; clearing site data removes them. No account, analytics, cookie or database.
+- Calculations happen in the browser. Saved simulations, the draft, the last calculation and the theme live in `localStorage`; clearing site data removes them. No account, cookie or third-party analytics.
+- Anonymous counters (visits, tools opened, options used, assistant outcomes and timing) are kept in a database, one row per day and name from a fixed list (`server/metrics.mjs`): never an amount, a question, an address or an identifier. Each event is reported once per tab session, and not at all under Do Not Track or Global Privacy Control. The dashboard (`/#admin`) shows them behind `ADMIN_TOKEN`.
 - A shared link contains all the workshop's inputs in the URL fragment (not sent in HTTP requests). It is a readable snapshot, not a private document.
 - Only an explicit assistant request sends the question, the scenario names, gross salaries and dependant counts to the server, which recomputes the figures and forwards them to the configured provider. The server stores nothing; free provider tiers may keep requests under their own terms. The site's legal pages say so in plain language.
 - JSON imports are size-limited and validated; CSV cells are escaped against spreadsheet formula injection.

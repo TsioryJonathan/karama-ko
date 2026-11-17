@@ -17,6 +17,7 @@ import { ExtrasPanel } from '../components/ExtrasPanel'
 import { endOfContract, SEVERANCE_CAP_MONTHS, SEVERANCE_DAYS_PER_YEAR, type EndInput } from '../engine/termination'
 import { ScaleNotice } from '../components/ScaleNotice'
 import { Menu, ToolBar } from './ToolBar'
+import { track } from '../lib/track'
 import { ActionIcon, ToolIcon } from './tools'
 import {
   PANELS,
@@ -208,6 +209,7 @@ export default function Studio({ panel }: { panel: Panel }) {
     try {
       await navigator.clipboard.writeText(shareUrl(panel, data))
       notify('Lien copié. Il contient les montants de cette simulation.')
+      track('option', 'share')
     } catch {
       notify('Copie indisponible. Utilisez l’export JSON pour partager cette simulation.', 'error')
     }

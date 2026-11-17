@@ -70,7 +70,11 @@ export function createApp({ env = process.env, trustProxy = env.TRUST_PROXY === 
             ? () => api.health()
             : url.pathname === '/api/assistant'
               ? (request) => api.assistant(request, visitorAddress(req, trustProxy))
-              : null
+              : url.pathname === '/api/track'
+                ? (request) => api.track(request, visitorAddress(req, trustProxy))
+                : url.pathname === '/api/metrics'
+                  ? (request) => api.metrics(request, visitorAddress(req, trustProxy))
+                  : null
         if (!handler) {
           json(res, 404, { error: 'Service inconnu.' })
           return

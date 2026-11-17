@@ -84,11 +84,11 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
     ),
   },
   confidentialite: {
-    lede: 'Karama-Ko calcule dans votre navigateur. Il n’y a ni compte, ni publicité, ni mesure d’audience : voici précisément ce qui est gardé, où, et ce qui peut en sortir.',
+    lede: 'Karama-Ko calcule dans votre navigateur. Il n’y a ni compte, ni publicité, ni suivi individuel, seulement des compteurs anonymes : voici précisément ce qui est gardé, où, et ce qui peut en sortir.',
     brief: [
       'Vos montants restent sur votre appareil.',
-      'Une seule fonction envoie des données : l’assistant, quand vous envoyez une question.',
-      'Aucun cookie, aucun traceur, aucune statistique.',
+      'L’assistant envoie votre question, seulement quand vous la posez.',
+      'Des compteurs anonymes comptent les visites, sans cookie, sans adresse, sans montant ni question.',
     ],
     body: (
       <>
@@ -107,8 +107,21 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
           Pour vous éviter de tout ressaisir, certaines saisies sont enregistrées dans le stockage de votre
           navigateur : le détail figure sur la page <a href="#cookies">Cookies et stockage local</a>.
         </p>
+        <h2>Les compteurs anonymes</h2>
+        <p>
+          Pour savoir si le site sert à quelque chose, la page signale à Karama-Ko qu’une visite a eu lieu, quel
+          outil a été ouvert et quelles options ont été utilisées (heures supplémentaires, OSTIE modifié, statut
+          cadre, lien copié). Chaque événement est un simple nom dans une liste fermée, ajouté à un compteur du jour : par
+          exemple « comparer : +1 ». Rien de ce que vous saisissez n’est envoyé, aucun cookie n’est déposé,
+          l’adresse IP n’est pas enregistrée et rien ne permet de reconnaître une personne d’un jour à l’autre. Un événement est
+          signalé une fois par onglet.
+        </p>
+        <p>
+          Les compteurs sont gardés dans une base de données hébergée par Neon. Si votre navigateur demande à ne pas être
+          suivi (« Do Not Track » ou « Global Privacy Control »), rien n’est signalé.
+        </p>
         {/* The providers named below must match AI_PROVIDERS: name those that really receive the questions. */}
-        <h2>L’assistant : le seul envoi de données</h2>
+        <h2>L’assistant : le seul envoi de ce que vous écrivez</h2>
         <p>
           L’assistant n’agit que lorsque vous envoyez une question, ou que vous touchez « Pourquoi ce résultat ? ».
           Rien n’est envoyé avant. À ce moment, le navigateur transmet au serveur de Karama-Ko :
@@ -123,7 +136,8 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
           d’intelligence artificielle tiers pour rédiger la réponse. Aujourd’hui, il s’agit de Groq, puis de
           Google (Gemini) et, en dernier recours, de DeepSeek (dont les serveurs sont situés en Chine) ; en cas
           d’indisponibilité ou de quota épuisé chez l’un, le suivant prend le relais. Karama-Ko n’enregistre ni
-          votre question ni la réponse.
+          votre question ni la réponse : il compte seulement qu’une question a été posée, et si la réponse a réussi,
+          échoué ou été refusée, avec le temps qu’elle a pris.
         </p>
         <p>
           Ce service fonctionne surtout avec des offres gratuites. Les conditions d’un fournisseur, surtout gratuit,
@@ -140,7 +154,7 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
         <h2>Ce que Karama-Ko ne fait pas</h2>
         <ul>
           <li>Pas de compte, de mot de passe ni d’adresse e-mail demandée.</li>
-          <li>Pas de cookie, de traceur publicitaire ou d’outil de mesure d’audience.</li>
+          <li>Pas de cookie ni de traceur publicitaire, et pas de suivi individuel : seulement les compteurs anonymes décrits plus haut.</li>
           <li>Pas de revente, de partage commercial ni de profilage.</li>
           <li>Pas de police de caractères chargée depuis un autre site : elles sont servies par le site.</li>
         </ul>
@@ -189,7 +203,7 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
     brief: [
       'Aucun cookie, aucun traceur.',
       'Ce que vous saisissez reste sur votre appareil.',
-      'Rien à accepter : rien n’est collecté.',
+      'Rien à accepter : aucun cookie, seulement des compteurs anonymes.',
     ],
     body: (
       <>
@@ -207,8 +221,12 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
           <li>les simulations que vous choisissez d’enregistrer, trente au maximum.</li>
         </ul>
         <p>
+          Le stockage de session de l’onglet garde en plus un marqueur par visite ou par outil déjà compté, pour ne pas le compter deux fois.
+          Il ne contient aucune donnée personnelle et disparaît à la fermeture de l’onglet.
+        </p>
+        <p>
           Tout cela reste sur votre appareil jusqu’à ce que vous l’effaciez. Le site ne l’envoie jamais de lui-même à
-          Karama-Ko ; la seule exception est ce que vous envoyez vous-même à l’assistant, décrit dans la{' '}
+          Karama-Ko ; les seules exceptions sont ce que vous envoyez vous-même à l’assistant et les compteurs anonymes, décrits dans la{' '}
           <a href="#confidentialite">politique de confidentialité</a>.
         </p>
         <h2>Fonctionnement hors connexion</h2>

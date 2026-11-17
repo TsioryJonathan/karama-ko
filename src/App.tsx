@@ -20,6 +20,7 @@ import { PANELS, type Panel } from './workspace/state'
 import { TOOLS } from './workspace/tools'
 import { LEGAL_PAGES } from './workspace/legal-pages'
 import { isLegalId } from './workspace/legal-pages'
+import { track } from './lib/track'
 import { SiteFooter } from './workspace/SiteFooter'
 import { loadInitial, persist, type Mode, type State } from './lib/state'
 
@@ -42,6 +43,7 @@ const Studio = lazy(() => import('./workspace/Studio'))
 const Home = lazy(() => import('./workspace/Home'))
 const Widget = lazy(() => import('./workspace/Widget'))
 const Legal = lazy(() => import('./workspace/Legal'))
+const Admin = lazy(() => import('./workspace/Admin'))
 
 /** Anchors inside a page: following one must not change which page is shown. */
 const IN_PAGE = new Set(['#resultat', '#atelier-content'])
@@ -52,6 +54,7 @@ function isKnown(hash: string, search: URLSearchParams) {
   if (search.get('embed') === '1' || search.has('brut') || search.has('net')) return true
   if (['', 'outils', 'calculateur', 'baremes'].includes(parts[0])) return parts.length === 1
   if (isLegalId(parts[0])) return parts.length === 1
+  if (parts[0] === 'admin') return parts.length === 1
   return parts[0] === 'atelier' && (parts.length === 1 || PANELS.some((p) => p.id === parts[1]))
 }
 
@@ -65,6 +68,7 @@ function routeMeta(hash: string, known: boolean, search: URLSearchParams) {
     const tool = TOOLS.find((t) => t.id === parts[1]) ?? TOOLS.find((t) => t.id === 'comparer')!
     return { title: tool.title + suffix, description: `${tool.text} ${tool.output}.` }
   }
+  if (parts[0] === 'admin') return { title: 'Tableau de bord' + suffix, noindex: true }
   const legal = LEGAL_PAGES.find((page) => page.id === parts[0])
   if (legal) return { title: legal.title + suffix, noindex: false }
   if (parts[0] === 'baremes') return { title: 'Barèmes et sources : IRSA, CNaPS, OSTIE' + suffix }
@@ -97,6 +101,14 @@ export function App() {
   const search = new URLSearchParams(location.search)
   const parts = hash.replace(/^#/, '').split('/')
   const known = isKnown(hash, search)
+  // Anonymous counters: one visit per tab, and the tool being used. Not the embedded widget, not the dashboard.
+  useEffect(() => {
+    if (!known || search.get('embed') === '1' || parts[0] === 'admin') return
+    track('visit', 'site')
+    if (parts[0] === 'atelier') track('tool', PANELS.some((p) => p.id === parts[1]) ? parts[1] : 'comparer')
+    else if (hash === '#calculateur' || search.has('brut') || search.has('net')) track('tool', 'calculateur')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash, known])
   useEffect(() => {
     const meta = routeMeta(hash, known, search)
     document.title = meta?.title ?? DEFAULTS.title
@@ -115,6 +127,8 @@ export function App() {
         <Widget />
       ) : parts[0] === 'atelier' ? (
         <Studio panel={panel} key={parts[2] || 'draft'} />
+      ) : parts[0] === 'admin' ? (
+        <Admin />
       ) : isLegalId(parts[0]) ? (
         <Legal page={parts[0]} />
       ) : hash === '#calculateur' || hash === '#baremes' || search.has('brut') || search.has('net') ? (
@@ -139,6 +153,15 @@ function Calculator() {
     return () => clearTimeout(timer)
   }, [copyFeedback])
 
+  // Which options are used, as anonymous counters.
+  useEffect(() => {
+    if (state.mode !== 'gross') return
+    const e = state.extras
+    if (e.hours1 > 0 || e.hours2 > 0) track('option', 'overtime')
+    if (e.nightHours > 0 || e.sundayHours > 0 || e.holidayHours > 0) track('option', 'premiums')
+    if (e.ostieEmployee !== NO_EXTRAS.ostieEmployee || e.ostieEmployer !== NO_EXTRAS.ostieEmployer) track('option', 'ostie')
+    if (e.cadre === 1) track('option', 'cadre')
+  }, [state.mode, state.extras])
   const outOfRange = state.amount !== null && state.amount > MAX_AMOUNT
   const pay = useMemo(() => {
     if (!state.amount || outOfRange || state.mode === 'net') return null
@@ -212,6 +235,7 @@ function Calculator() {
                 try {
                   await navigator.clipboard.writeText(location.href)
                   setCopyFeedback({ message: 'Lien copié.', state: 'success', id: Date.now() })
+                  track('option', 'share')
                 } catch {
                   setCopyFeedback({ message: 'Copie indisponible. Copiez le lien depuis la barre d’adresse.', state: 'error', id: Date.now() })
                 }
