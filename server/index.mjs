@@ -106,7 +106,8 @@ export function createApp({ env = process.env, trustProxy = env.TRUST_PROXY === 
         }
         // Every real page lives at the root: any other address is a genuine 404 that the app explains.
         path = resolve(ROOT, 'index.html')
-        status = 404
+        // /admin is the dashboard's address: the page sends the visitor on to #admin.
+        status = url.pathname === '/admin' || url.pathname === '/admin/' ? 200 : 404
       }
       const type = extname(path)
       let content = await readFile(path)

@@ -36,3 +36,13 @@ test('the dashboard is not indexed and the page does not report when the browser
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
   await context.close()
 })
+
+test('/admin opens the dashboard, with a 200 and not a 404', async ({ page }) => {
+  const response = await page.goto('/admin')
+  expect(response?.status()).toBe(200)
+  await expect(page.getByRole('heading', { name: 'Tableau de bord' })).toBeVisible()
+  expect(new URL(page.url()).hash).toBe('#admin')
+  expect(new URL(page.url()).pathname).toBe('/')
+  // Any other unknown address is still a real 404.
+  expect((await page.goto('/admins'))?.status()).toBe(404)
+})
