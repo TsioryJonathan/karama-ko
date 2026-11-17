@@ -13,6 +13,8 @@ Gross ⇄ net, IRSA, CNaPS, OSTIE, offers, negotiation, hiring and end of contra
 
 ![Karama-Ko home page](docs/screenshots/hero.jpg)
 
+[Live demo](https://karama-ko.vercel.app) · [Case study](docs/CASE_STUDY.md)
+
 </div>
 
 > *Karama* is the Malagasy word for **salary**, and the suffix *‑ko* means **my**: Karama‑Ko is « my salary ». The interface is in French; the code, comments and documentation are in English.
