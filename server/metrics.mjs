@@ -155,8 +155,12 @@ export function createMetrics({ env = process.env, store, now = () => new Date()
 const digest = (text) => createHash('sha256').update(text).digest()
 /** `Authorization: Bearer <token>` against ADMIN_TOKEN, compared in constant time. */
 export function hasAdminToken(request, token) {
-  if (!token) return false
   const given = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? ''
+  return matchesAdminToken(given, token)
+}
+
+export function matchesAdminToken(given, token) {
+  if (!token || typeof given !== 'string') return false
   return timingSafeEqual(digest(given), digest(token))
 }
 

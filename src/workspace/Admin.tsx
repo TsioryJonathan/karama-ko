@@ -24,16 +24,7 @@ const OPTION_LABELS: Record<string, string> = {
   share: 'Lien de partage copié',
 }
 const PERIODS = [7, 30, 90]
-const TOKEN_KEY = 'karama:admin'
 const number = new Intl.NumberFormat('fr-FR')
-
-function readToken() {
-  try {
-    return sessionStorage.getItem(TOKEN_KEY) ?? ''
-  } catch {
-    return ''
-  }
-}
 
 function Bars({ rows, labels, empty }: { rows: { name: string; count: number }[]; labels: Record<string, string>; empty: string }) {
   const max = Math.max(1, ...rows.map((r) => r.count))
@@ -76,7 +67,7 @@ function Figure({ label, value, detail }: { label: string; value: string; detail
 }
 
 export default function Admin() {
-  const [token, setToken] = useState(readToken)
+  const [authenticated, setAuthenticated] = useState(false)
   const [typed, setTyped] = useState('')
   const [days, setDays] = useState(30)
   const [data, setData] = useState<Summary | null>(null)
@@ -84,24 +75,20 @@ export default function Admin() {
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(
-    async (secret: string, span: number, signal?: AbortSignal) => {
+    async (span: number, signal?: AbortSignal) => {
       setLoading(true)
       setError('')
       try {
-        const response = await fetch(`/api/metrics?days=${span}`, { headers: { Authorization: `Bearer ${secret}` }, signal })
+        const response = await fetch(`/api/metrics?days=${span}`, { credentials: 'same-origin', cache: 'no-store', signal })
         const body = await response.json().catch(() => ({}))
         if (response.status === 401) {
-          try {
-            sessionStorage.removeItem(TOKEN_KEY)
-          } catch {
-            /* storage blocked */
-          }
-          setToken('')
+          setAuthenticated(false)
           setData(null)
-          setError('Mot de passe incorrect.')
+          setError('')
           return
         }
         if (!response.ok) throw new Error(body.error || 'Impossible de charger les mesures.')
+        setAuthenticated(true)
         setData(body as Summary)
       } catch (e) {
         if (!signal?.aborted) setError(e instanceof Error ? e.message : 'Impossible de charger les mesures.')
@@ -113,32 +100,46 @@ export default function Admin() {
   )
 
   useEffect(() => {
-    if (!token) return
+    // Remove passwords saved by earlier versions; never reuse them.
+    try { sessionStorage.removeItem('karama:admin') } catch { /* storage blocked */ }
     const controller = new AbortController()
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load(token, days, controller.signal)
+    void load(days, controller.signal)
     return () => controller.abort()
-  }, [token, days, load])
+  }, [days, load])
 
-  const signIn = (event: FormEvent) => {
+  const signIn = async (event: FormEvent) => {
     event.preventDefault()
-    if (!typed) return
-    try {
-      sessionStorage.setItem(TOKEN_KEY, typed)
-    } catch {
-      /* storage blocked: the password then lasts until the page is closed */
-    }
-    setToken(typed)
+    if (!typed || loading) return
+    const password = typed
     setTyped('')
-  }
-  const signOut = () => {
+    setLoading(true)
+    setError('')
     try {
-      sessionStorage.removeItem(TOKEN_KEY)
-    } catch {
-      /* storage blocked */
-    }
-    setToken('')
-    setData(null)
+      const response = await fetch('/api/admin-session', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'X-Karama-Admin': '1' },
+        body: JSON.stringify({ password }),
+      })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(body.error || 'Connexion impossible.')
+      await load(days)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Connexion impossible.')
+    } finally { setLoading(false) }
+  }
+  const signOut = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await fetch('/api/admin-session', {
+        method: 'DELETE', credentials: 'same-origin', cache: 'no-store',
+        headers: { 'X-Karama-Admin': '1' },
+      })
+      if (!response.ok) throw new Error('Déconnexion impossible. Réessayez.')
+      setAuthenticated(false)
+      setData(null)
+    } catch (e) { setError(e instanceof Error ? e.message : 'Déconnexion impossible.') }
+    finally { setLoading(false) }
   }
 
   const assistant = data?.assistant
@@ -152,8 +153,8 @@ export default function Admin() {
           <BrandLogo />
         </a>
         <nav aria-label="Navigation principale">
-          {token && (
-            <button type="button" className="btn btn-outline" onClick={signOut}>
+          {authenticated && (
+            <button type="button" className="btn btn-outline" onClick={signOut} disabled={loading}>
               Se déconnecter
             </button>
           )}
@@ -167,7 +168,7 @@ export default function Admin() {
           tout si le navigateur refuse le suivi.
         </p>
 
-        {!token ? (
+        {!authenticated ? (
           <form onSubmit={signIn} className="mt-8 max-w-sm space-y-3">
             <div className="studio-field">
               <label htmlFor="admin-password">Mot de passe</label>
@@ -187,7 +188,7 @@ export default function Admin() {
                 {error}
               </p>
             )}
-            <button type="submit" className="btn btn-accent" disabled={!typed}>
+            <button type="submit" className="btn btn-accent" disabled={!typed || loading}>
               Ouvrir
             </button>
           </form>

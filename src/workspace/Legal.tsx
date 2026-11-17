@@ -154,7 +154,7 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
         <h2>Ce que Karama-Ko ne fait pas</h2>
         <ul>
           <li>Pas de compte, de mot de passe ni d’adresse e-mail demandée.</li>
-          <li>Pas de cookie ni de traceur publicitaire, et pas de suivi individuel : seulement les compteurs anonymes décrits plus haut.</li>
+          <li>Pas de cookie de suivi ni de traceur publicitaire, et pas de suivi individuel : seulement les compteurs anonymes décrits plus haut.</li>
           <li>Pas de revente, de partage commercial ni de profilage.</li>
           <li>Pas de police de caractères chargée depuis un autre site : elles sont servies par le site.</li>
         </ul>
@@ -199,11 +199,11 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
     ),
   },
   cookies: {
-    lede: 'Karama-Ko n’utilise aucun cookie et ne vous suit pas. Il retient seulement vos préférences et votre travail, sur votre propre appareil.',
+    lede: 'Les outils publics de Karama-Ko n’utilisent aucun cookie et ne vous suivent pas. Le site retient seulement vos préférences et votre travail, sur votre propre appareil.',
     brief: [
-      'Aucun cookie, aucun traceur.',
+      'Aucun cookie de suivi, aucun traceur.',
       'Ce que vous saisissez reste sur votre appareil.',
-      'Rien à accepter : aucun cookie, seulement des compteurs anonymes.',
+      'Les compteurs anonymes ne déposent aucun cookie.',
     ],
     body: (
       <>
@@ -228,6 +228,12 @@ const CONTENT: Record<LegalId, { lede: string; brief: string[]; body: ReactNode 
           Tout cela reste sur votre appareil jusqu’à ce que vous l’effaciez. Le site ne l’envoie jamais de lui-même à
           Karama-Ko ; les seules exceptions sont ce que vous envoyez vous-même à l’assistant et les compteurs anonymes, décrits dans la{' '}
           <a href="#confidentialite">politique de confidentialité</a>.
+        </p>
+        <h2>Connexion au tableau de bord administrateur</h2>
+        <p>
+          La connexion administrateur utilise un cookie de session sécurisé, inaccessible au JavaScript,
+          pour une durée maximale de huit heures. Il ne contient pas le mot de passe et ne sert pas au suivi.
+          Le bouton « Se déconnecter » le supprime. Les outils publics ne nécessitent pas ce cookie.
         </p>
         <h2>Fonctionnement hors connexion</h2>
         <p>

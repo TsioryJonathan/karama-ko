@@ -1,7 +1,8 @@
 import { createAssistant, loadProviders } from './ai.mjs'
 import { REFUSAL, UNRELIABLE, checkAnswer, checkQuestion } from './guard.mjs'
 import { createLimiter } from './limits.mjs'
-import { PAGE_KINDS, createMetrics, createThrottle, hasAdminToken, isCountable } from './metrics.mjs'
+import { PAGE_KINDS, createMetrics, createThrottle, hasAdminToken, matchesAdminToken, isCountable } from './metrics.mjs'
+import { hasAdminSession, issueSession, sessionCookie } from './admin-session.mjs'
 
 const MAX_BODY = 12_000
 const MAX_TRACK_BODY = 200
@@ -42,6 +43,29 @@ export function createApi({
     async health() {
       return reply(200, { aiConfigured: assistant.configured })
     },
+    async adminSession(request, ip = 'unknown') {
+      if (!['POST', 'DELETE'].includes(request.method))
+        return reply(405, { error: 'Méthode non autorisée.' }, { Allow: 'POST, DELETE' })
+      // Custom header prevents cross-site form submissions, including requests without Origin.
+      const origin = request.headers.get('origin')
+      if (request.headers.get('x-karama-admin') !== '1' ||
+          (origin && !allowedOrigins(request).includes(origin)) ||
+          request.headers.get('sec-fetch-site') === 'cross-site')
+        return reply(403, { error: 'Origine non autorisée.' })
+      if (request.method === 'DELETE')
+        return reply(200, { ok: true }, { 'Set-Cookie': sessionCookie('', true) })
+      if (!metrics.enabled || !env.ADMIN_TOKEN) return reply(503, { error: 'Le tableau de bord n’est pas configuré.' })
+      if (!adminThrottle(ip)) return reply(429, { error: 'Trop de tentatives.' }, { 'Retry-After': '60' })
+      if (!request.headers.get('content-type')?.startsWith('application/json'))
+        return reply(415, { error: 'Une demande JSON est requise.' })
+      const raw = new Uint8Array(await request.arrayBuffer())
+      if (raw.length > MAX_BODY) return reply(413, { error: 'Demande trop volumineuse.' })
+      let body
+      try { body = JSON.parse(new TextDecoder().decode(raw)) }
+      catch { return reply(400, { error: 'JSON invalide.' }) }
+      if (!matchesAdminToken(body?.password, env.ADMIN_TOKEN)) return reply(401, { error: 'Mot de passe incorrect.' })
+      return reply(200, { ok: true }, { 'Set-Cookie': sessionCookie(issueSession(env.ADMIN_TOKEN)) })
+    },
     /** A page reports that something happened: a kind and a name from the fixed vocabulary, nothing else. */
     async track(request, ip = 'unknown') {
       if (request.method !== 'POST') return reply(405, { error: 'Méthode non autorisée.' }, { Allow: 'POST' })
@@ -68,7 +92,8 @@ export function createApi({
       if (request.method !== 'GET') return reply(405, { error: 'Méthode non autorisée.' }, { Allow: 'GET' })
       if (!metrics.enabled || !env.ADMIN_TOKEN) return reply(503, { error: 'Le tableau de bord n’est pas configuré.' })
       if (!adminThrottle(ip)) return reply(429, { error: 'Trop de tentatives.' }, { 'Retry-After': '60' })
-      if (!hasAdminToken(request, env.ADMIN_TOKEN)) return reply(401, { error: 'Mot de passe incorrect.' })
+      if (!hasAdminToken(request, env.ADMIN_TOKEN) && !hasAdminSession(request, env.ADMIN_TOKEN))
+        return reply(401, { error: 'Mot de passe incorrect.' })
       try {
         return reply(200, await metrics.summary(Number(new URL(request.url).searchParams.get('days'))))
       } catch {

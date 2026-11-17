@@ -8,5 +8,8 @@ export function createApi(options?: {
 }): {
   configured: boolean
   health(): Promise<Response>
+  adminSession(request: Request, ip?: string): Promise<Response>
+  metrics(request: Request, ip?: string): Promise<Response>
+  track(request: Request, ip?: string): Promise<Response>
   assistant(request: Request, ip?: string): Promise<Response>
 }

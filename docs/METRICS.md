@@ -80,7 +80,7 @@ Body: `{"kind":"tool","name":"comparer"}`, at most 200 bytes, JSON.
 
 ### `GET /api/metrics?days=30`
 
-Header: `Authorization: Bearer <ADMIN_TOKEN>`. `days` is clamped to 1–90 (default 30).
+The dashboard sends its session cookie automatically. Scripts may use `Authorization: Bearer <ADMIN_TOKEN>`. `days` is clamped to 1–90 (default 30).
 
 | Status | Meaning |
 | --- | --- |
@@ -103,13 +103,17 @@ Header: `Authorization: Bearer <ADMIN_TOKEN>`. `days` is clamped to 1–90 (defa
 
 ## The dashboard
 
-`/admin` (or `/#admin`) asks for the password, kept in the tab's `sessionStorage` until the tab is closed or *Se déconnecter* is used. It shows, over 7, 30 or 90 days: visits, assistant questions, success rate, average answer time, visits per day (with a table behind the chart), tools used and options used. The page is `noindex`.
+`/admin` (or `/#admin`) asks for the password once, then uses a signed `__Host-karama_admin` session cookie (`HttpOnly; Secure; SameSite=Strict; Path=/`). The password is never saved in browser storage. The cookie has no persistent browser lifetime and the server rejects it after 8 hours. Reloading keeps the session; *Se déconnecter* clears the cookie. Old `karama:admin` sessionStorage entries are removed when opening the dashboard. It shows, over 7, 30 or 90 days: visits, assistant questions, success rate, average answer time, visits per day (with a table behind the chart), tools used and options used. The page is `noindex`.
 
 ## Security
 
 - The password (`ADMIN_TOKEN`) is compared in constant time, from a SHA-256 digest of both sides.
 - Password attempts are throttled per address, and the dashboard is switched off when the variable is missing: it never opens by default.
 - `/api/track` accepts only the closed vocabulary, small bodies, same-origin browser requests, and at most 120 events a minute per address. The throttles live in memory, per instance: a brake, not a guarantee on a serverless host.
+- `POST /api/admin-session` accepts a JSON password and returns only `{ "ok": true }` plus the session cookie; `DELETE` clears it. Both require `X-Karama-Admin: 1`, reject cross-site requests and validate Origin when supplied. Login attempts share the metrics throttle.
+- Session signatures use a domain-separated HMAC with `ADMIN_TOKEN` and a random nonce. Rotating `ADMIN_TOKEN` invalidates all sessions. Logout clears the browser cookie; a previously stolen copy remains valid until its signed expiry or token rotation (sessions are stateless across instances).
+- HTTPS is required outside localhost. The cookie is always Secure; local development uses the browser’s loopback exception.
+- Bearer authentication remains available for existing scripts; the dashboard uses only the cookie.
 - The database credentials stay on the server. The browser only ever sees the summary.
 - Counters can be inflated by someone sending events on purpose. They are for orientation, not for billing.
 
