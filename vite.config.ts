@@ -83,6 +83,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        // These files must reach the server, rather than render the app's 404 screen.
+        navigateFallbackDenylist: [/^\/(?:sitemap\.xml|robots\.txt)(?:\?|$)/],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // The error page is the app itself, and the brand preview is a design sheet: neither is worth caching.
         globIgnores: ['404.html', 'brand/preview.*'],
